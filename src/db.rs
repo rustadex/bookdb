@@ -22,6 +22,8 @@ impl Database {
 
     fn init_schema(&self) -> Result<()> {
         self.conn.execute_batch(sql::V1_CREATE_TABLES)?;
+        self.conn.execute_batch(sql::V2_CREATE_DOCS)?;
+        self.conn.execute_batch(sql::V2_CREATE_DOCS)?;
         Ok(())
     }
 
@@ -156,5 +158,34 @@ impl Database {
 
     pub fn stream_doc_chunks(&self, ds_id: i64) -> Result<Vec<(String, String)>> {
         self.query_to_kv_vec("SELECT dc_key, dc_value FROM doc_chunks WHERE ds_id_fk = ?1 ORDER BY dc_key", &[&ds_id])
-    }
+    
+// --- V2 Docs/Segments ---
+pub fn get_or_create_doc_id(&self, doc_key: &str, ds_id: i64) -> Result<i64> {
+    let id: i64 = self.conn.query_row(sql::RESOLVE_DOC_ID, params![doc_key, ds_id], |r| r.get(0))?;
+    Ok(id)
+}
+pub fn get_doc_id(&self, doc_key: &str, ds_id: i64) -> Result<i64> {
+    let id = self.conn.query_row(sql::GET_DOC_ID, params![doc_key, ds_id], |r| r.get(0)).optional()?;
+    id.ok_or_else(|| BookdbError::KeyNotFound(doc_key.to_string()))
+}
+pub fn get_doc_segment(&self, doc_key: &str, path: &str, ds_id: i64) -> Result<Option<(Vec<u8>, String)>> {
+    let doc_id = self.get_doc_id(doc_key, ds_id)?;
+    let mut stmt = self.conn.prepare(sql::GET_DOC_SEGMENT)?;
+    let row = stmt.query_row(params![path, doc_id], |r| Ok((r.get::<_, Vec<u8>>(0)?, r.get::<_, String>(1)?))).optional()?;
+    Ok(row)
+}
+pub fn set_doc_segment(&self, doc_key: &str, path: &str, mime: &str, content: &[u8], ds_id: i64) -> Result<()> {
+    let doc_id = self.get_or_create_doc_id(doc_key, ds_id)?;
+    self.conn.execute(sql::UPSERT_DOC_SEGMENT, params![path, mime, content, doc_id])?;
+    Ok(())
+}
+pub fn list_docs_v2(&self, ds_id: i64) -> Result<Vec<String>> {
+    self.query_to_vec(sql::LIST_DOCS_V2, &[&ds_id])
+}
+pub fn list_segments(&self, doc_key: &str, ds_id: i64) -> Result<Vec<String>> {
+    let doc_id = self.get_doc_id(doc_key, ds_id)?;
+    self.query_to_vec(sql::LIST_SEGMENTS, &[&doc_id])
+}
+}
+
 }

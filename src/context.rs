@@ -3,6 +3,8 @@
 use crate::db::Database;
 use crate::error::{BookdbError, Result};
 use crate::models::{Context, Namespace};
+use crate::rdx_stderr::Level;
+use crate::{log_trace, log_debug, span};
 use log::info;
 use serde_json;
 use std::fs::{self, File};
@@ -92,45 +94,48 @@ pub fn save_context(context: &Context, cursor_path: &PathBuf) -> Result<()> {
 
 // --- Parser (from previous correct version) ---
 pub fn parse_context_string(s: &str) -> Result<Context> {
-    let (base_name, remainder) = s.split_once('@').unwrap_or(("home", s));
-
-    if let Some(_) = remainder.find(".var.") {
-        let parts: Vec<&str> = remainder.split(".var.").collect();
-        if parts.len() != 2 { return Err(BookdbError::ContextParse("Invalid variable context format.".into())); }
-        
-        let project_and_docstore = parts[0];
-        let varstore = parts[1];
-
-        let (project_name, docstore_name) = match project_and_docstore.rsplit_once('.') {
-            Some((proj, ds)) => (proj.to_string(), ds.to_string()),
-            None => (project_and_docstore.to_string(), "main".to_string()),
-        };
-
-        if varstore.is_empty() { return Err(BookdbError::ContextParse("Varstore name cannot be empty.".into())); }
-
-        Ok(Context {
-            base_name: base_name.to_string(), project_name, docstore_name,
-            active_namespace: Namespace::Variables { varstore_name: varstore.to_string() },
-        })
-
-    } else if let Some(doc_pivot_index) = remainder.find(".doc.") {
-        let project_and_docstore = &remainder[..doc_pivot_index];
-        let (project_name, docstore_name) = match project_and_docstore.rsplit_once('.') {
-            Some((proj, ds)) => (proj.to_string(), ds.to_string()),
-            None => (project_and_docstore.to_string(), "main".to_string()),
-        };
-        Ok(Context {
-            base_name: base_name.to_string(), project_name, docstore_name,
-            active_namespace: Namespace::Document,
-        })
-    } else {
-        let (project_name, docstore_name) = match remainder.rsplit_once('.') {
-            Some((proj, ds)) => (proj.to_string(), ds.to_string()),
-            None => (remainder.to_string(), "main".to_string()),
-        };
-        Ok(Context {
-            base_name: base_name.to_string(), project_name, docstore_name,
-            active_namespace: Namespace::Document,
-        })
+    span!(Level::Trace, "parse_context_string");
+    let s = s.trim();
+    // Leading persist prefix @ = persist, % = no-persist; we ignore here and let caller decide.
+    let s_no_prefix = if s.starts_with('@') || s.starts_with('%') { &s[1..] } else { s };
+    let (base_name, raw) = s_no_prefix.split_once('@').unwrap_or(("home", s_no_prefix));
+    let tokens: Vec<&str> = raw.split('.').collect();
+    if tokens.is_empty() { return Err(BookdbError::ContextParse("Empty context string".into())); }
+    // find anchor
+    let mut anchor_idx: Option<(usize, &str)> = None;
+    for (i,t) in tokens.iter().enumerate() {
+        let tl = t.to_ascii_lowercase();
+        if tl=="var" || tl=="doc" { anchor_idx = Some((i, &tokens[i])); break; }
+    }
+    match anchor_idx {
+        Some((i, anchor_raw)) => {
+            let anchor = anchor_raw.to_ascii_lowercase();
+            // project.docstore before anchor
+            let head = &tokens[..i];
+            let (project_name, docstore_name) = match head.len() {
+                0 => ("GLOBAL".to_string(), "main".to_string()),
+                1 => (head[0].to_string(), "main".to_string()),
+                _ => (head[0].to_string(), head[1].to_string()),
+            };
+            let tail = &tokens[i+1..];
+            if anchor=="var" {
+                if tail.len()!=1 { return Err(BookdbError::ContextParse("VAR requires VAR.<varstore>".into())); }
+                let varstore_name = tail[0];
+                if varstore_name.is_empty() { return Err(BookdbError::ContextParse("Empty varstore".into())); }
+                Ok(Context{ base_name: base_name.to_string(), project_name, docstore_name,
+                    active_namespace: Namespace::Variables{ varstore_name: varstore_name.to_string() } })
+            } else {
+                Ok(Context{ base_name: base_name.to_string(), project_name, docstore_name, active_namespace: Namespace::Document })
+            }
+        }
+        None => {
+            let (project_name, docstore_name) = match tokens.len() {
+                0 => ("GLOBAL".to_string(), "main".to_string()),
+                1 => (tokens[0].to_string(), "main".to_string()),
+                _ => (tokens[0].to_string(), tokens[1].to_string()),
+            };
+            Ok(Context{ base_name: base_name.to_string(), project_name, docstore_name, active_namespace: Namespace::Document })
+        }
     }
 }
+

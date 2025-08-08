@@ -1,0 +1,1 @@
+SELECT content, mime FROM doc_segments WHERE doc_id_fk = ?1 AND path = ?2;

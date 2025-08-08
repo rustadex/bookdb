@@ -34,6 +34,8 @@ pub fn execute(target: LsTarget, db: &Database, ids: ResolvedContextIds) -> Resu
             }
         }
         LsTarget::Docs => {
+            let ds_id = match ids { ResolvedContextIds::Variables { ds_id, .. } | ResolvedContextIds::Document { ds_id, .. } => ds_id };
+            return { let items = db.list_docs_v2(ds_id)?; print_items(items); Ok(()) };
             if let ResolvedContextIds::Document { ds_id, .. } = ids {
                 db.list_diks(ds_id)?
             } else {

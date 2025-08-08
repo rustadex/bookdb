@@ -30,3 +30,13 @@ pub const UPSERT_VAR: &str = include_str!("sql/upsert_var.sql");
 // --- Documents ---
 pub const GET_DOC_CHUNK: &str = include_str!("sql/get_doc_chunk.sql");
 pub const UPSERT_DOC_CHUNK: &str = include_str!("sql/upsert_doc_chunk.sql");
+
+
+// --- V2 Docs/Segments ---
+pub const V2_CREATE_DOCS: &str = include_str!("sql/V2__create_docs.sql");
+pub const GET_DOC_ID: &str = include_str!("sql/get_doc_id.sql");
+pub const RESOLVE_DOC_ID: &str = include_str!("sql/resolve_doc_id.sql");
+pub const GET_DOC_SEGMENT: &str = include_str!("sql/get_doc_segment.sql");
+pub const UPSERT_DOC_SEGMENT: &str = include_str!("sql/upsert_doc_segment.sql");
+pub const LIST_DOCS_V2: &str = include_str!("sql/list_docs_v2.sql");
+pub const LIST_SEGMENTS: &str = include_str!("sql/list_segments.sql");

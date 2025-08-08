@@ -1,0 +1,1 @@
+SELECT path FROM doc_segments WHERE doc_id_fk = ?1 ORDER BY path;

@@ -8,3 +8,5 @@ pub mod ls;
 pub mod setd;
 pub mod setv;
 pub mod r#use;
+
+pub mod migrate;

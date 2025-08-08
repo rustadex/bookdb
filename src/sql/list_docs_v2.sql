@@ -1,0 +1,1 @@
+SELECT doc_key FROM docs WHERE ds_id_fk = ?1 ORDER BY doc_key;

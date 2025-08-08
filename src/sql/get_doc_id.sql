@@ -1,0 +1,1 @@
+SELECT doc_id FROM docs WHERE doc_key = ?1 AND ds_id_fk = ?2;
