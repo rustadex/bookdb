@@ -1,33 +1,15 @@
-// src/error.rs
-
+use std::io;
 use thiserror::Error;
+use serde_json;
+
+pub type Result<T> = std::result::Result<T, BookdbError>;
 
 #[derive(Error, Debug)]
 pub enum BookdbError {
-    #[error("Database Error: {0}")]
-    Database(#[from] rusqlite::Error),
-
-    #[error("I/O Error: {0}")]
-    Io(#[from] std::io::Error),
-
-    #[error("JSON Serialization/Deserialization Error: {0}")]
-    Json(#[from] serde_json::Error),
-
-    #[error("Could not find required XDG directory: {0}")]
-    XdgPath(String),
-
-    #[error("Context parsing failed: {0}")]
-    ContextParse(String),
-
-    #[error("Namespace not found in database: {0}")]
-    NamespaceNotFound(String),
-
-    #[error("Key not found in database: '{0}'")]
-    KeyNotFound(String),
-
-    #[error("Invalid argument: {0}")]
-    Argument(String),
+    #[error("argument error: {0}")] Argument(String),
+    #[error("context error: {0}")] ContextParse(String),
+    #[error("not found: {0}")] KeyNotFound(String),
+    #[error(transparent)] Sql(#[from] rusqlite::Error),
+    #[error(transparent)] Io(#[from] io::Error),
+    #[error(transparent)] Serde(#[from] serde_json::Error),
 }
-
-// A type alias for a Result that uses our custom error type.
-pub type Result<T> = std::result::Result<T, BookdbError>;

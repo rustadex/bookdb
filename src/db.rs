@@ -1,191 +1,117 @@
-// src/db.rs
+use rusqlite::{Connection, params, OptionalExtension};
+use crate::error::{Result, BookdbError};
 
-use crate::error::{BookdbError, Result};
-use crate::models::{Context, Namespace};
-use crate::sql;
-use chrono::Utc;
-use rusqlite::{params, Connection, OptionalExtension};
-use std::path::Path;
-
-pub struct Database {
-    conn: Connection,
-}
+pub struct Database { pub conn: Connection }
 
 impl Database {
-    pub fn new(db_path: &Path) -> Result<Self> {
-        let conn = Connection::open(db_path)?;
-        conn.execute("PRAGMA foreign_keys = ON;", [])?;
-        let db = Database { conn };
-        db.init_schema()?;
+    pub fn open_default() -> Result<Self> {
+        let conn = Connection::open("bookdb.sqlite")?;
+        let db = Self{ conn };
+        db.bootstrap()?;
         Ok(db)
     }
 
-    fn init_schema(&self) -> Result<()> {
-        self.conn.execute_batch(sql::V1_CREATE_TABLES)?;
-        self.conn.execute_batch(sql::V2_CREATE_DOCS)?;
-        self.conn.execute_batch(sql::V2_CREATE_DOCS)?;
+    fn bootstrap(&self) -> Result<()> {
+        self.conn.execute_batch(crate::sql::V1_CREATE_TABLES)?;
+        self.conn.execute_batch(crate::sql::V2_CREATE_DOCS)?;
         Ok(())
     }
 
-    pub fn backup_db(&self, backup_path: &Path) -> Result<()> {
-        self.conn
-            .backup(rusqlite::DatabaseName::Main, backup_path, None)
-            .map_err(BookdbError::from)
+    // --- Project/Docstore/Varstore ---
+    pub fn get_or_create_project(&self, name: &str) -> Result<i64> {
+        self.conn.execute("INSERT OR IGNORE INTO projects(name) VALUES (?1)", params![name])?;
+        let id: i64 = self.conn.query_row("SELECT id FROM projects WHERE name=?1", params![name], |r| r.get(0))?;
+        Ok(id)
     }
-    
-    // ... all other methods from the last correct version of this file remain here ...
-    pub fn get_var_context_ids(&self, context: &Context) -> Result<(i64, i64, i64)> {
-        let varstore_name = match &context.active_namespace {
-            Namespace::Variables { varstore_name } => varstore_name,
-            Namespace::Document => return Err(BookdbError::ContextParse("Expected variable context".into())),
-        };
-
-        let (p_id, ds_id) = self.get_doc_context_ids(context)?;
-        
-        let vs_id: i64 = self.conn.query_row(
-            sql::GET_VARSTORE_ID,
-            params![varstore_name, ds_id],
-            |row| row.get(0),
-        ).optional()?.ok_or_else(|| BookdbError::NamespaceNotFound(format!("varstore '{}'", varstore_name)))?;
-
-        Ok((p_id, ds_id, vs_id))
-    }
-
-    pub fn get_doc_context_ids(&self, context: &Context) -> Result<(i64, i64)> {
-        let p_id: i64 = self.conn.query_row(
-            sql::GET_PROJECT_ID,
-            params![&context.project_name],
-            |row| row.get(0),
-        ).optional()?.ok_or_else(|| BookdbError::NamespaceNotFound(format!("project '{}'", context.project_name)))?;
-
-        let ds_id: i64 = self.conn.query_row(
-            sql::GET_DOCSTORE_ID,
-            params![&context.docstore_name, p_id],
-            |row| row.get(0),
-        ).optional()?.ok_or_else(|| BookdbError::NamespaceNotFound(format!("docstore '{}'", context.docstore_name)))?;
-
-        Ok((p_id, ds_id))
-    }
-
-    pub fn resolve_var_context_or_create(&self, context: &Context) -> Result<(i64, i64, i64)> {
-        let varstore_name = match &context.active_namespace {
-            Namespace::Variables { varstore_name } => varstore_name,
-            Namespace::Document => return Err(BookdbError::ContextParse("Expected variable context".into())),
-        };
-
-        let (p_id, ds_id) = self.resolve_doc_context_or_create(context)?;
-
-        let vs_id: i64 = self.conn.query_row(
-            sql::RESOLVE_VARSTORE_ID,
-            params![varstore_name, ds_id],
-            |row| row.get(0),
-        )?;
-
-        Ok((p_id, ds_id, vs_id))
-    }
-
-    pub fn resolve_doc_context_or_create(&self, context: &Context) -> Result<(i64, i64)> {
-        let p_id: i64 = self.conn.query_row(
-            sql::RESOLVE_PROJECT_ID,
-            params![&context.project_name],
-            |row| row.get(0),
-        )?;
-
-        let ds_id: i64 = self.conn.query_row(
-            sql::RESOLVE_DOCSTORE_ID,
-            params![&context.docstore_name, p_id],
-            |row| row.get(0),
-        )?;
-
-        Ok((p_id, ds_id))
-    }
-    
-    pub fn get_var(&self, key: &str, vs_id: i64) -> Result<Option<String>> {
-        self.conn.query_row(sql::GET_VAR, params![key, vs_id], |row| row.get(0)).optional().map_err(BookdbError::from)
-    }
-
-    pub fn set_var(&self, key: &str, value: &str, vs_id: i64) -> Result<()> {
-        let now = Utc::now().timestamp();
-        self.conn.execute(sql::UPSERT_VAR, params![key, value, now, vs_id])?;
-        Ok(())
-    }
-
-    pub fn get_doc_chunk(&self, dik: &str, ds_id: i64) -> Result<Option<String>> {
-        self.conn.query_row(sql::GET_DOC_CHUNK, params![dik, ds_id], |row| row.get(0)).optional().map_err(BookdbError::from)
-    }
-
-    pub fn set_doc_chunk(&self, dik: &str, value: &str, ds_id: i64) -> Result<()> {
-        let now = Utc::now().timestamp();
-        self.conn.execute(sql::UPSERT_DOC_CHUNK, params![dik, value, now, ds_id])?;
-        Ok(())
-    }
-
-    fn query_to_vec(&self, sql: &str, params: &[&dyn rusqlite::ToSql]) -> Result<Vec<String>> {
-        let mut stmt = self.conn.prepare(sql)?;
-        let rows = stmt.query_map(params, |row| row.get(0))?;
-        rows.collect::<rusqlite::Result<Vec<String>>>().map_err(BookdbError::from)
-    }
-
     pub fn list_projects(&self) -> Result<Vec<String>> {
-        self.query_to_vec(sql::LIST_PROJECTS, &[])
+        self.query_to_vec("SELECT name FROM projects ORDER BY name", &[])
     }
 
-    pub fn list_docstores(&self, p_id: i64) -> Result<Vec<String>> {
-        self.query_to_vec(sql::LIST_DOCSTORES, &[&p_id])
+    pub fn get_or_create_docstore(&self, project_id: i64, name: &str) -> Result<i64> {
+        self.conn.execute("INSERT OR IGNORE INTO docstores(project_id,name) VALUES (?1,?2)", params![project_id, name])?;
+        let id: i64 = self.conn.query_row("SELECT id FROM docstores WHERE project_id=?1 AND name=?2", params![project_id, name], |r| r.get(0))?;
+        Ok(id)
+    }
+    pub fn list_docstores(&self) -> Result<Vec<String>> {
+        self.query_to_vec("SELECT p.name||'.'||d.name FROM docstores d JOIN projects p ON p.id=d.project_id ORDER BY 1", &[])
     }
 
-    pub fn list_varstores(&self, ds_id: i64) -> Result<Vec<String>> {
-        self.query_to_vec(sql::LIST_VARSTORES, &[&ds_id])
+    pub fn get_or_create_varstore(&self, project_id: i64, name: &str) -> Result<i64> {
+        self.conn.execute("INSERT OR IGNORE INTO varstores(project_id,name) VALUES (?1,?2)", params![project_id, name])?;
+        let id: i64 = self.conn.query_row("SELECT id FROM varstores WHERE project_id=?1 AND name=?2", params![project_id, name], |r| r.get(0))?;
+        Ok(id)
+    }
+    pub fn list_varstores(&self) -> Result<Vec<String>> {
+        self.query_to_vec("SELECT p.name||'.'||v.name FROM varstores v JOIN projects p ON p.id=v.project_id ORDER BY 1", &[])
     }
 
+    // --- Vars ---
     pub fn list_keys(&self, vs_id: i64) -> Result<Vec<String>> {
-        self.query_to_vec(sql::LIST_KEYS, &[&vs_id])
+        self.query_to_vec("SELECT key FROM variables WHERE vs_id_fk=?1 ORDER BY key", &[&vs_id])
+    }
+    pub fn get_var(&self, key: &str, vs_id: i64) -> Result<Option<String>> {
+        let v: Option<String> = self.conn.query_row("SELECT value FROM variables WHERE vs_id_fk=?1 AND key=?2",
+            params![vs_id, key], |r| r.get(0)).optional()?;
+        Ok(v)
+    }
+    pub fn set_var(&self, key: &str, value: &str, vs_id: i64) -> Result<()> {
+        self.conn.execute(
+            "INSERT INTO variables(vs_id_fk,key,value) VALUES (?1,?2,?3)             ON CONFLICT(vs_id_fk,key) DO UPDATE SET value=excluded.value",
+             params![vs_id, key, value])?;
+        Ok(())
     }
 
-    pub fn list_diks(&self, ds_id: i64) -> Result<Vec<String>> {
-        self.query_to_vec(sql::LIST_DIKS, &[&ds_id])
+    // --- Legacy chunks for migrate ---
+    pub fn stream_doc_chunks(&self, ds_id: i64) -> Result<Vec<(String,String)>> {
+        self.query_to_kv_vec("SELECT dc_key, dc_value FROM doc_chunks WHERE ds_id_fk=?1 ORDER BY dc_key", &[&ds_id])
     }
 
-    fn query_to_kv_vec(&self, sql: &str, params: &[&dyn rusqlite::ToSql]) -> Result<Vec<(String, String)>> {
+    // --- Docs/Segments V2 ---
+    pub fn get_or_create_doc_id(&self, doc_key: &str, ds_id: i64) -> Result<i64> {
+        self.conn.execute("INSERT OR IGNORE INTO docs(ds_id_fk, doc_key) VALUES (?1,?2)", params![ds_id, doc_key])?;
+        let id: i64 = self.conn.query_row("SELECT id FROM docs WHERE ds_id_fk=?1 AND doc_key=?2", params![ds_id, doc_key], |r| r.get(0))?;
+        Ok(id)
+    }
+    pub fn get_doc_id(&self, doc_key: &str, ds_id: i64) -> Result<i64> {
+        let id: Option<i64> = self.conn.query_row("SELECT id FROM docs WHERE ds_id_fk=?1 AND doc_key=?2",
+            params![ds_id, doc_key], |r| r.get(0)).optional()?;
+        id.ok_or_else(|| BookdbError::KeyNotFound(doc_key.to_string()))
+    }
+    pub fn list_docs_v2(&self, ds_id: i64) -> Result<Vec<String>> {
+        self.query_to_vec("SELECT doc_key FROM docs WHERE ds_id_fk=?1 ORDER BY doc_key", &[&ds_id])
+    }
+    pub fn list_segments(&self, doc_key: &str, ds_id: i64) -> Result<Vec<String>> {
+        let doc_id = self.get_doc_id(doc_key, ds_id)?;
+        self.query_to_vec("SELECT path FROM doc_segments WHERE doc_id_fk=?1 ORDER BY path", &[&doc_id])
+    }
+    pub fn get_doc_segment(&self, doc_key: &str, path: &str, ds_id: i64) -> Result<Option<(Vec<u8>, String)>> {
+        let doc_id = self.get_doc_id(doc_key, ds_id)?;
+        let row: Option<(Vec<u8>, String)> = self.conn.query_row(
+            "SELECT content, mime FROM doc_segments WHERE doc_id_fk=?1 AND path=?2",
+            params![doc_id, path], |r| Ok((r.get(0)?, r.get(1)?))).optional()?;
+        Ok(row)
+    }
+    pub fn set_doc_segment(&self, doc_key: &str, path: &str, mime: &str, content: &[u8], ds_id: i64) -> Result<()> {
+        let doc_id = self.get_or_create_doc_id(doc_key, ds_id)?;
+        self.conn.execute(
+            "INSERT INTO doc_segments(doc_id_fk,path,mime,content) VALUES (?1,?2,?3,?4)             ON CONFLICT(doc_id_fk,path) DO UPDATE SET mime=excluded.mime, content=excluded.content",
+             params![doc_id, path, mime, content])?;
+        Ok(())
+    }
+
+    // --- Helpers ---
+    pub fn query_to_vec(&self, sql: &str, paramsx: &[&dyn rusqlite::ToSql]) -> Result<Vec<String>> {
         let mut stmt = self.conn.prepare(sql)?;
-        let rows = stmt.query_map(params, |row| Ok((row.get(0)?, row.get(1)?)))?;
-        rows.collect::<rusqlite::Result<Vec<(String, String)>>>().map_err(BookdbError::from)
+        let rows = stmt.query_map(paramsx, |r| r.get::<_, String>(0))?;
+        let mut out = Vec::new();
+        for v in rows { out.push(v?); }
+        Ok(out)
     }
-
-    pub fn stream_vars(&self, vs_id: i64) -> Result<Vec<(String, String)>> {
-        self.query_to_kv_vec("SELECT var_key, var_value FROM vars WHERE vs_id_fk = ?1 ORDER BY var_key", &[&vs_id])
+    pub fn query_to_kv_vec(&self, sql: &str, paramsx: &[&dyn rusqlite::ToSql]) -> Result<Vec<(String,String)>> {
+        let mut stmt = self.conn.prepare(sql)?;
+        let rows = stmt.query_map(paramsx, |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))?;
+        let mut out = Vec::new();
+        for v in rows { out.push(v?); }
+        Ok(out)
     }
-
-    pub fn stream_doc_chunks(&self, ds_id: i64) -> Result<Vec<(String, String)>> {
-        self.query_to_kv_vec("SELECT dc_key, dc_value FROM doc_chunks WHERE ds_id_fk = ?1 ORDER BY dc_key", &[&ds_id])
-    
-// --- V2 Docs/Segments ---
-pub fn get_or_create_doc_id(&self, doc_key: &str, ds_id: i64) -> Result<i64> {
-    let id: i64 = self.conn.query_row(sql::RESOLVE_DOC_ID, params![doc_key, ds_id], |r| r.get(0))?;
-    Ok(id)
-}
-pub fn get_doc_id(&self, doc_key: &str, ds_id: i64) -> Result<i64> {
-    let id = self.conn.query_row(sql::GET_DOC_ID, params![doc_key, ds_id], |r| r.get(0)).optional()?;
-    id.ok_or_else(|| BookdbError::KeyNotFound(doc_key.to_string()))
-}
-pub fn get_doc_segment(&self, doc_key: &str, path: &str, ds_id: i64) -> Result<Option<(Vec<u8>, String)>> {
-    let doc_id = self.get_doc_id(doc_key, ds_id)?;
-    let mut stmt = self.conn.prepare(sql::GET_DOC_SEGMENT)?;
-    let row = stmt.query_row(params![path, doc_id], |r| Ok((r.get::<_, Vec<u8>>(0)?, r.get::<_, String>(1)?))).optional()?;
-    Ok(row)
-}
-pub fn set_doc_segment(&self, doc_key: &str, path: &str, mime: &str, content: &[u8], ds_id: i64) -> Result<()> {
-    let doc_id = self.get_or_create_doc_id(doc_key, ds_id)?;
-    self.conn.execute(sql::UPSERT_DOC_SEGMENT, params![path, mime, content, doc_id])?;
-    Ok(())
-}
-pub fn list_docs_v2(&self, ds_id: i64) -> Result<Vec<String>> {
-    self.query_to_vec(sql::LIST_DOCS_V2, &[&ds_id])
-}
-pub fn list_segments(&self, doc_key: &str, ds_id: i64) -> Result<Vec<String>> {
-    let doc_id = self.get_doc_id(doc_key, ds_id)?;
-    self.query_to_vec(sql::LIST_SEGMENTS, &[&doc_id])
-}
-}
-
 }

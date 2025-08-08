@@ -1,4 +1,3 @@
-// src/commands/getv.rs
 use crate::context::ResolvedContextIds;
 use crate::db::Database;
 use crate::error::{BookdbError, Result};
@@ -6,13 +5,10 @@ use crate::error::{BookdbError, Result};
 pub fn execute(key: &str, db: &Database, ids: ResolvedContextIds) -> Result<()> {
     if let ResolvedContextIds::Variables { vs_id, .. } = ids {
         match db.get_var(key, vs_id)? {
-            Some(value) => {
-                println!("{}", value);
-                Ok(())
-            }
+            Some(v) => { println!("{}", v); Ok(()) },
             None => Err(BookdbError::KeyNotFound(key.to_string())),
         }
     } else {
-        Err(BookdbError::ContextParse("`getv` command requires a variable context.".into()))
+        Err(BookdbError::ContextParse("`getv` requires a variable context".into()))
     }
 }

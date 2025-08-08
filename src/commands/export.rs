@@ -2,75 +2,93 @@
 use crate::db::Database;
 use crate::error::Result;
 use crate::context::ResolvedContextIds;
+use globset::{GlobBuilder, GlobMatcher};
+use serde::Serialize;
 use std::fs::File;
-use std::io::{Write, BufWriter, Read};
+use std::io::{Write, BufWriter};
+use base64::{engine::general_purpose, Engine as _};
+
+#[derive(Serialize)]
+#[serde(tag="type")]
+enum Row<'a> {
+    Var { project: &'a str, docstore: &'a str, varstore: &'a str, key: &'a str, value: &'a str },
+    Doc { project: &'a str, docstore: &'a str, doc: &'a str },
+    Segment { project: &'a str, docstore: &'a str, doc: &'a str, path: &'a str, mime: &'a str, content_b64: String },
+}
+
+struct Filters {
+    _proj: Option<GlobMatcher>,
+    _ds: Option<GlobMatcher>,
+    _vs: Option<GlobMatcher>,
+    doc: Option<GlobMatcher>,
+    key: Option<GlobMatcher>,
+    seg: Option<GlobMatcher>,
+}
+fn to_matcher(s: &Option<String>) -> Option<GlobMatcher> {
+    s.as_ref().map(|p| GlobBuilder::new(p).backslash_escape(true).case_insensitive(true).build().unwrap().compile_matcher())
+}
 
 pub fn execute(
     file_path: &std::path::Path,
     format: Option<String>,
-    filters: (Option<String>,Option<String>,Option<String>,Option<String>,Option<String>,Option<String>),
+    filters_in: (Option<String>,Option<String>,Option<String>,Option<String>,Option<String>,Option<String>),
     db: &Database,
     ids: ResolvedContextIds,
 ) -> Result<()> {
-    let fmt = format.unwrap_or_else(|| "kv".to_string());
-    match fmt.as_str() {
-        "kv" => export_kv(file_path, db, ids),
-        "jsonl" => export_jsonl(file_path, filters, db, ids),
-        other => { eprintln!("unknown format: {}", other); export_kv(file_path, db, ids) }
-    }
-}
+    let (proj, ds, vs, doc, key, seg) = filters_in;
+    let filters = Filters { _proj: to_matcher(&proj), _ds: to_matcher(&ds), _vs: to_matcher(&vs), doc: to_matcher(&doc), key: to_matcher(&key), seg: to_matcher(&seg) };
+    let out = File::create(file_path)?;
+    let mut w = BufWriter::new(out);
+    let fmt = format.unwrap_or_else(|| "kv".to_string()); // default kv
 
-fn export_kv(path: &std::path::Path, db: &Database, ids: ResolvedContextIds) -> Result<()> {
-    let vs_id = match ids { ResolvedContextIds::Variables{ vs_id, .. } => vs_id, _ => {
-        // if not in var context, no vars to export
-        let mut w = BufWriter::new(File::create(path)?);
-        w.flush()?;
-        return Ok(());
-    }};
-    let rows = db.stream_vars(vs_id)?;
-    let mut w = BufWriter::new(File::create(path)?);
-    for (k,v) in rows {
-        writeln!(&mut w, "{}={}", k, v)?;
-    }
-    w.flush()?;
-    Ok(())
-}
-
-fn export_jsonl(
-    path: &std::path::Path,
-    _filters: (Option<String>,Option<String>,Option<String>,Option<String>,Option<String>,Option<String>),
-    db: &Database,
-    ids: ResolvedContextIds,
-) -> Result<()> {
-    use serde::Serialize;
-    #[derive(Serialize)]
-    #[serde(tag="type")]
-    enum Row<'a>{
-        Var{ key:&'a str, value:&'a str },
-        Doc{ doc:&'a str },
-        Segment{ doc:&'a str, path:&'a str, mime:&'a str, content_b64:String },
-    }
-    let mut w = BufWriter::new(File::create(path)?);
-    if let ResolvedContextIds::Variables{ vs_id, .. } = ids {
-        let rows = db.stream_vars(vs_id)?;
-        for (k,v) in rows.iter() {
-            serde_json::to_writer(&mut w, &Row::Var{ key:k, value:v })?; writeln!(&mut w)?;
-        }
-    }
+    let project = "(proj)"; let docstore = "(ds)";
     let ds_id = match ids { ResolvedContextIds::Variables { ds_id, .. } | ResolvedContextIds::Document { ds_id, .. } => ds_id };
-    for d in db.list_docs_v2(ds_id)? {
-        let segs = db.list_segments(&d, ds_id).unwrap_or_default();
-        if segs.is_empty() {
-            serde_json::to_writer(&mut w, &Row::Doc{ doc:&d })?; writeln!(&mut w)?;
+
+    // VARS
+    if let ResolvedContextIds::Variables { vs_id, .. } = ids {
+        let vs_name = "(varstore)";
+        let rows = db.list_keys(vs_id)?;
+        if fmt == "kv" {
+            for k in rows {
+                if filters.key.as_ref().map(|m| m.is_match(&k)).unwrap_or(true) {
+                    if let Some(v) = db.get_var(&k, vs_id)? { writeln!(w, "{}={}", k, v)?; }
+                }
+            }
         } else {
-            for path_s in segs {
-                if let Some((bytes,mime)) = db.get_doc_segment(&d, &path_s, ds_id)? {
-                    let b64 = base64::encode(bytes);
-                    serde_json::to_writer(&mut w, &Row::Segment{ doc:&d, path:&path_s, mime:&mime, content_b64:b64 })?; writeln!(&mut w)?;
+            for k in db.list_keys(vs_id)? {
+                if filters.key.as_ref().map(|m| m.is_match(&k)).unwrap_or(true) {
+                    if let Some(v) = db.get_var(&k, vs_id)? {
+                        let row = Row::Var{ project, docstore, varstore: vs_name, key: &k, value: &v };
+                        serde_json::to_writer(&mut w, &row)?; w.write_all(b"\n")?;
+                    }
                 }
             }
         }
     }
+
+    // DOCS+SEGMENTS (jsonl only)
+    if fmt == "jsonl" {
+        let docs = db.list_docs_v2(ds_id)?;
+        for d in docs.iter() {
+            if filters.doc.as_ref().map(|m| m.is_match(d)).unwrap_or(true) {
+                let segs = db.list_segments(d, ds_id).unwrap_or_default();
+                if segs.is_empty() {
+                    let row = Row::Doc{ project, docstore, doc: d };
+                    serde_json::to_writer(&mut w, &row)?; w.write_all(b"\n")?;
+                } else {
+                    for path in segs.iter() {
+                        if filters.seg.as_ref().map(|m| m.is_match(path)).unwrap_or(true) {
+                            if let Some((bytes, mime)) = db.get_doc_segment(d, path, ds_id)? {
+                                let row = Row::Segment{ project, docstore, doc: d, path, mime: &mime, content_b64: general_purpose::STANDARD.encode(bytes) };
+                                serde_json::to_writer(&mut w, &row)?; w.write_all(b"\n")?;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     w.flush()?;
     Ok(())
 }
