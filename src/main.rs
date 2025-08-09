@@ -7,20 +7,22 @@ mod sql;
 mod commands;
 
 use clap::Parser;
-use rdx_stderr::Level as LogLevel;
-use rdx_stderr::set_level;
+use rdx_stderr::{Level as LogLevel, set_level};
 
 fn main() -> error::Result<()> {
     // 1) CLI parse
     let cli = cli::Cli::parse();
 
     // 2) stderr log setup
-    if cli.trace { set_level(LogLevel::Trace); } else if cli.debug { set_level(LogLevel::Debug); }
+    if cli.trace {
+        set_level(LogLevel::Trace);
+    } else if cli.debug {
+        set_level(LogLevel::Debug);
+    }
     log_info!("bookdb starting");
 
-    // 3) Determine mode
-    let command = cli.command.clone();
-    let mode = match command {
+    // 3) Determine mode (create vs read-only) from the command
+    let mode = match &cli.command {
         Some(cli::Command::Setv { .. })
         | Some(cli::Command::Setd { .. })
         | Some(cli::Command::Import { .. })
@@ -32,26 +34,50 @@ fn main() -> error::Result<()> {
     // 4) Open DB
     let database = db::Database::open_default()?;
 
-    // 5) Resolve context (for this clean build we default to GLOBAL.main)
-    let active_context = context::Context::default();
+    // 5) Build context and flip to VAR namespace for getv/setv
+    let var_cmd = matches!(&cli.command,
+        Some(cli::Command::Getv { .. } | cli::Command::Setv { .. })
+    );
+    let mut active_context = context::Context::default();
+    if var_cmd {
+        active_context.active_namespace = context::Namespace::Variables;
+    }
+
+    // 6) Resolve context once
     let resolved_ids = context::resolve_ids(&active_context, mode, &database)?;
 
-    // 6) Dispatch
+    // 7) Dispatch
     match cli.command {
-        Some(cli::Command::Getv { key }) => commands::getv::execute(&key, &database, resolved_ids)?,
-        Some(cli::Command::Setv { key_value }) => commands::setv::execute(&key_value, &database, resolved_ids)?,
-        Some(cli::Command::Getd { dik }) => commands::getd::execute(&dik, &database, resolved_ids)?,
-        Some(cli::Command::Setd { dik_value }) => commands::setd::execute(&dik_value, &database, resolved_ids)?,
-        Some(cli::Command::Ls { target }) => commands::ls::execute(target, &database, resolved_ids)?,
-        Some(cli::Command::Export { file_path, format, proj, ds, vs, doc, key, seg }) => {
-            commands::export::execute(&file_path, format, (proj,ds,vs,doc,key,seg), &database, resolved_ids)?
+        Some(cli::Command::Getv { key }) =>
+            commands::getv::execute(&key, &database, resolved_ids)?,
+
+        Some(cli::Command::Setv { key_value }) =>
+            commands::setv::execute(&key_value, &database, resolved_ids)?,
+
+        Some(cli::Command::Getd { dik }) =>
+            commands::getd::execute(&dik, &database, resolved_ids)?,
+
+        Some(cli::Command::Setd { dik_value }) =>
+            commands::setd::execute(&dik_value, &database, resolved_ids)?,
+
+        Some(cli::Command::Ls { target }) =>
+            commands::ls::execute(target, &database, resolved_ids)?,
+
+        Some(cli::Command::Export { file_path, format, proj, ds, vs, doc, key, seg }) =>
+            commands::export::execute(&file_path, format, (proj, ds, vs, doc, key, seg), &database, resolved_ids)?,
+
+        Some(cli::Command::Import { file_path, mode, map_base, map_proj, map_ds, format: _ }) =>
+            commands::import::execute(&file_path, &mode, &map_base, &map_proj, &map_ds, &database, resolved_ids)?,
+
+        Some(cli::Command::Migrate { dry_run }) =>
+            commands::migrate::execute(dry_run, &database, resolved_ids)?,
+
+        Some(cli::Command::Use { context_str }) =>
+            commands::r#use::execute(&context_str)?,
+
+        None => {
+            println!("{:#?}", active_context);
         }
-        Some(cli::Command::Import { file_path, mode, map_base, map_proj, map_ds, format: _ }) => {
-            commands::import::execute(&file_path, &mode, &map_base, &map_proj, &map_ds, &database, resolved_ids)?
-        }
-        Some(cli::Command::Migrate { dry_run }) => commands::migrate::execute(dry_run, &database, resolved_ids)?,
-        Some(cli::Command::Use { context_str }) => commands::r#use::execute(&context_str)?,
-        None => { println!("{:#?}", active_context); }
     }
 
     Ok(())
