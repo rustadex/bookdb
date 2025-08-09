@@ -22,17 +22,10 @@ CREATE TABLE IF NOT EXISTS variables(
     value TEXT NOT NULL,
     UNIQUE(vs_id_fk, key)
 );
--- legacy chunks (optional)
-CREATE TABLE IF NOT EXISTS doc_chunks(
-    id INTEGER PRIMARY KEY,
-    ds_id_fk INTEGER NOT NULL,
-    dc_key TEXT NOT NULL,
-    dc_value TEXT NOT NULL,
-    UNIQUE(ds_id_fk, dc_key)
+CREATE TABLE IF NOT EXISTS meta(
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
 );
-"#;
-
-pub const V2_CREATE_DOCS: &str = r#"
 CREATE TABLE IF NOT EXISTS docs(
     id INTEGER PRIMARY KEY,
     ds_id_fk INTEGER NOT NULL,
@@ -47,4 +40,13 @@ CREATE TABLE IF NOT EXISTS doc_segments(
     content BLOB NOT NULL,
     UNIQUE(doc_id_fk, path)
 );
+CREATE TABLE IF NOT EXISTS doc_chunks(
+    id INTEGER PRIMARY KEY,
+    ds_id_fk INTEGER NOT NULL,
+    dc_key TEXT NOT NULL,
+    dc_value TEXT NOT NULL,
+    UNIQUE(ds_id_fk, dc_key)
+);
 "#;
+
+pub const V2_CREATE_DOCS: &str = "";
