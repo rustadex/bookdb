@@ -1,15 +1,18 @@
 [package]
 name = "bookdb"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 
 [dependencies]
-clap = { version = "4.5.4", features = ["derive"] }
-rusqlite = { version = "0.31", features = ["bundled", "chrono"] }
+clap = { version = "4", features = ["derive"] }
+rusqlite = { version = "0.31", features = ["bundled"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-chrono = { version = "0.4", features = ["clock"] }
-base64 = "0.22"
-globset = "0.4"
-
 thiserror = "1"
+base64 = "0.22"
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3

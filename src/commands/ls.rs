@@ -1,26 +1,27 @@
-// src/commands/ls.rs
+use crate::error::Result;
 use crate::context::ResolvedContextIds;
 use crate::db::Database;
-use crate::error::{BookdbError, Result};
 use crate::cli::LsTarget;
 
 fn print_items(items: Vec<String>) {
-    for it in items { println!("{}", it); }
+    if items.is_empty() { println!("(empty)"); }
+    else { for s in items { println!("{}", s); } }
 }
 
 pub fn execute(target: LsTarget, db: &Database, ids: ResolvedContextIds) -> Result<()> {
     match target {
+        LsTarget::Projects  => { let v = db.list_projects()?; print_items(v); Ok(()) }
+        LsTarget::Docstores => { let v = db.list_docstores()?; print_items(v); Ok(()) }
+        LsTarget::Varstores => { let v = db.list_varstores()?; print_items(v); Ok(()) }
+        LsTarget::Docs => {
+            if let ResolvedContextIds::Document { ds_id, .. } = ids {
+                let v = db.list_docs_v2(ds_id)?; print_items(v); Ok(())
+            } else { println!("(empty)"); Ok(()) }
+        }
         LsTarget::Keys => {
             if let ResolvedContextIds::Variables { vs_id, .. } = ids {
-                let items = db.list_keys(vs_id)?; print_items(items); Ok(())
-            } else { Err(BookdbError::ContextParse("Cannot list keys in a document context".into())) }
+                let v = db.list_keys(vs_id)?; print_items(v); Ok(())
+            } else { println!("(empty)"); Ok(()) }
         }
-        LsTarget::Docs => {
-            let ds_id = match ids { ResolvedContextIds::Variables { ds_id, .. } | ResolvedContextIds::Document { ds_id, .. } => ds_id };
-            let items = db.list_docs_v2(ds_id)?; print_items(items); Ok(())
-        }
-        LsTarget::Varstores => { let items = db.list_varstores()?; print_items(items); Ok(()) }
-        LsTarget::Docstores => { let items = db.list_docstores()?; print_items(items); Ok(()) }
-        LsTarget::Projects => { let items = db.list_projects()?; print_items(items); Ok(()) }
     }
 }

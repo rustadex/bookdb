@@ -1,16 +1,19 @@
+use crate::error::{Result, BookdbError};
 use crate::context::ResolvedContextIds;
 use crate::db::Database;
-use crate::error::{BookdbError, Result};
 use std::io::Write;
 
 pub fn execute(dik: &str, db: &Database, ids: ResolvedContextIds) -> Result<()> {
-    if let ResolvedContextIds::Document { ds_id } = ids {
-        let mut parts = dik.splitn(2, '.');
-        let doc_key = parts.next().unwrap_or("");
-        let seg_path = parts.next().unwrap_or("_root");
+    if let ResolvedContextIds::Document { ds_id, .. } = ids {
+        let (doc_key, seg_path) = dik.split_once('.').unwrap_or((dik, "_root"));
         match db.get_doc_segment(doc_key, seg_path, ds_id)? {
-            Some((bytes, _mime)) => {
-                match String::from_utf8(bytes.clone()) { Ok(s) => println!("{}", s), Err(_) => std::io::stdout().write_all(&bytes)? };
+            Some((bytes, mime)) => {
+                if mime.starts_with("text/") {
+                    let s = String::from_utf8(bytes).unwrap_or_default();
+                    println!("{}", s);
+                } else {
+                    std::io::stdout().write_all(&bytes)?;
+                }
                 Ok(())
             }
             None => Err(BookdbError::KeyNotFound(format!("{}.{}", doc_key, seg_path))),
