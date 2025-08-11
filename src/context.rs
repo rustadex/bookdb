@@ -72,25 +72,29 @@ pub struct ResolvedContext {
 
 impl fmt::Display for ContextChain {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let prefix = match self.prefix_mode {
-            ChainMode::Persistent => '@',
-            ChainMode::Ephemeral => '%',
-            ChainMode::Action => '#',
-        };
-        
-        let base_part = if let Some(ref base) = self.base {
-            format!("{}@", base)
+        if self.is_fqcc {
+            // FQCC: base@project.workspace.anchor.tail (no prefix)
+            let base_part = self.base.as_ref().unwrap();
+            let anchor_str = match self.anchor {
+                Anchor::Var => "var",
+                Anchor::Doc => "doc",
+            };
+            write!(f, "{}@{}.{}.{}.{}", 
+                   base_part, self.project, self.workspace, anchor_str, self.tail)
         } else {
-            String::new()
-        };
-        
-        let anchor_str = match self.anchor {
-            Anchor::Var => "var",
-            Anchor::Doc => "doc",
-        };
-        
-        write!(f, "{}{}{}.{}.{}.{}", 
-               prefix, base_part, self.project, self.workspace, anchor_str, self.tail)
+            // CDCC: prefix+project.workspace.anchor.tail
+            let prefix = match self.prefix_mode {
+                ChainMode::Persistent => '@',
+                ChainMode::Ephemeral => '%',
+                ChainMode::Action => '#',
+            };
+            let anchor_str = match self.anchor {
+                Anchor::Var => "var",
+                Anchor::Doc => "doc",
+            };
+            write!(f, "{}{}.{}.{}.{}", 
+                   prefix, self.project, self.workspace, anchor_str, self.tail)
+        }
     }
 }
 
@@ -128,16 +132,31 @@ pub fn parse_context_chain(raw: &str, fallback_base: &str) -> Result<ContextChai
             "Context chain must start with @, %, or #".to_string())),
     };
     
-    // Step 2: Split base@ from rest if present
-    let (base, rest) = if let Some(at_pos) = chain_body.find('@') {
-        let base_part = &chain_body[..at_pos];
-        let rest_part = &chain_body[at_pos + 1..];
+    // Step 2: Handle base@ prefix for FQCC vs CDCC
+    let (base, rest) = if chain_body.contains('@') {
+        // FQCC format: base@project.workspace.var.keystore (no prefix on base name)
+        let parts: Vec<&str> = chain_body.splitn(2, '@').collect();
+        if parts.len() != 2 {
+            return Err(BookdbError::ContextParse(
+                "Invalid base@ format".to_string()));
+        }
+        let base_part = parts[0];
+        let rest_part = parts[1];
+        
         if base_part.is_empty() {
             return Err(BookdbError::ContextParse(
                 "Empty base name before @".to_string()));
         }
+        
+        // Base names cannot have prefixes
+        if base_part.starts_with('@') || base_part.starts_with('%') || base_part.starts_with('#') {
+            return Err(BookdbError::ContextParse(
+                "Base names cannot have prefixes (@, %, #)".to_string()));
+        }
+        
         (Some(base_part.to_string()), rest_part)
     } else {
+        // CDCC format: project.workspace.var.keystore (uses fallback base)
         (None, chain_body)
     };
     
@@ -279,7 +298,8 @@ mod tests {
     
     #[test]
     fn test_fqcc_parsing() -> Result<()> {
-        let chain = parse_context_chain("@work@website.api_keys.var.credentials", "home")?;
+        // CORRECT: Base has no prefix
+        let chain = parse_context_chain("work@website.api_keys.var.credentials", "home")?;
         
         assert_eq!(chain.base, Some("work".to_string()));
         assert_eq!(chain.project, "website");
@@ -294,6 +314,7 @@ mod tests {
     
     #[test]
     fn test_cdcc_parsing() -> Result<()> {
+        // CORRECT: CDCC with @ prefix on chain, not base
         let chain = parse_context_chain("@frontend.deployment.var.production", "work")?;
         
         assert_eq!(chain.base, Some("work".to_string()));
@@ -304,6 +325,14 @@ mod tests {
         assert!(!chain.is_fqcc);
         
         Ok(())
+    }
+    
+    #[test]
+    fn test_base_prefix_rejection() {
+        // INVALID: Base cannot have prefixes
+        assert!(parse_context_chain("@work@website.api_keys.var.credentials", "home").is_err());
+        assert!(parse_context_chain("%work@website.api_keys.var.credentials", "home").is_err());
+        assert!(parse_context_chain("#work@website.api_keys.var.credentials", "home").is_err());
     }
     
     #[test]
@@ -422,10 +451,12 @@ mod tests {
     
     #[test]
     fn test_display_formatting() -> Result<()> {
-        let chain = parse_context_chain("@work@website.api_keys.var.credentials", "home")?;
+        // FQCC: no prefix on base name
+        let chain = parse_context_chain("work@website.api_keys.var.credentials", "home")?;
         let display = format!("{}", chain);
-        assert_eq!(display, "@work@website.api_keys.var.credentials");
+        assert_eq!(display, "work@website.api_keys.var.credentials");
         
+        // CDCC: prefix on chain, not base
         let ephemeral = parse_context_chain("%temp.test.doc.readme", "home")?;
         let ephemeral_display = format!("{}", ephemeral);
         assert_eq!(ephemeral_display, "%temp.test.doc.readme");
