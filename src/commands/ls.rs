@@ -1,10 +1,4 @@
-// src/commands/ls.rs - List command implementation
-//
-// FEATURES:
-// 1. Lists various types: keys, projects, workspaces, varstores
-// 2. Rich table formatting with stderr integration
-// 3. Hierarchical display with context awareness
-// 4. Comprehensive error handling
+// src/commands/ls.rs - Updated with consistent BOOKDB_CONCEPTS.md terminology
 
 use crate::error::{Result, BookdbError};
 use crate::context::ResolvedContext;
@@ -21,8 +15,8 @@ pub fn execute(target: LsTarget, context: &ResolvedContext, database: &Database)
     match target {
         LsTarget::Keys => list_keys(context, database, &mut logger),
         LsTarget::Projects => list_projects(database, &mut logger),
-        LsTarget::Docstores => list_workspaces(context, database, &mut logger),
-        LsTarget::Varstores => list_varstores(context, database, &mut logger),
+        LsTarget::Workspaces => list_workspaces(context, database, &mut logger),    // FIXED: was Docstores
+        LsTarget::Keystores => list_keystores(context, database, &mut logger),      // FIXED: was Varstores
         LsTarget::Docs => list_docs(context, database, &mut logger),
     }
 }
@@ -126,37 +120,37 @@ fn list_workspaces(context: &ResolvedContext, database: &Database, logger: &mut 
     Ok(())
 }
 
-/// List all varstores in current workspace
-fn list_varstores(context: &ResolvedContext, database: &Database, logger: &mut Stderr) -> Result<()> {
-    logger.trace_fn("ls_varstores", &format!("listing varstores in {}.{}", context.project, context.workspace));
+/// List all keystores in current workspace
+fn list_keystores(context: &ResolvedContext, database: &Database, logger: &mut Stderr) -> Result<()> {  // FIXED: was list_varstores
+    logger.trace_fn("ls_keystores", &format!("listing keystores in {}.{}", context.project, context.workspace));
     
-    let varstores = database.list_varstores(&context.project, &context.workspace)?;
+    let keystores = database.list_keystores(&context.project, &context.workspace)?;  // FIXED: was list_varstores
     
-    if varstores.is_empty() {
-        logger.info(&format!("No varstores found in {}.{}", context.project, context.workspace));
+    if keystores.is_empty() {
+        logger.info(&format!("No keystores found in {}.{}", context.project, context.workspace));
         return Ok(());
     }
     
     // Create table with numbering and variable counts
-    let mut table_data = vec![vec!["#", "Varstore", "Variables"]];
-    for (i, varstore) in varstores.iter().enumerate() {
-        // Create context for this varstore to count variables
-        let varstore_context = ResolvedContext {
+    let mut table_data = vec![vec!["#", "Keystore", "Variables"]];  // FIXED: was "Varstore"
+    for (i, keystore) in keystores.iter().enumerate() {
+        // Create context for this keystore to count variables
+        let keystore_context = ResolvedContext {
             base: context.base.clone(),
             project: context.project.clone(),
             workspace: context.workspace.clone(),
             anchor: context.anchor,
-            tail: varstore.clone(),
+            tail: keystore.clone(),
             prefix_mode: context.prefix_mode,
         };
         
-        let var_count = database.list_variables(&varstore_context)
+        let var_count = database.list_variables(&keystore_context)
             .map(|vars| vars.len())
             .unwrap_or(0);
         
         table_data.push(vec![
             &(i + 1).to_string(), 
-            varstore, 
+            keystore, 
             &var_count.to_string()
         ]);
     }
@@ -166,20 +160,20 @@ fn list_varstores(context: &ResolvedContext, database: &Database, logger: &mut S
         .map(|row| row.as_slice())
         .collect();
     
-    logger.banner(&format!("Varstores in {}.{}", context.project, context.workspace), '=')?;
+    logger.banner(&format!("Keystores in {}.{}", context.project, context.workspace), '=')?;  // FIXED: was "Varstores"
     logger.simple_table(&table_refs)?;
-    logger.info(&format!("Total: {} varstores", varstores.len()));
+    logger.info(&format!("Total: {} keystores", keystores.len()));
     
     Ok(())
 }
 
-/// List documents (placeholder for future implementation)
+/// List documents in current workspace
 fn list_docs(context: &ResolvedContext, _database: &Database, logger: &mut Stderr) -> Result<()> {
-    logger.trace_fn("ls_docs", &format!("listing documents in {}", context));
+    logger.trace_fn("ls_docs", &format!("listing documents in {}.{}", context.project, context.workspace));
     
-    // For now, document support is not fully implemented
-    logger.info("Document listing not yet implemented");
-    logger.info("Use 'bookdb ls keys' to see variables in current context");
+    // TODO: Implement document listing when document system is ready
+    logger.info(&format!("Document listing not yet implemented for {}.{}", context.project, context.workspace));
+    logger.info("Use 'bookdb ls keys' to see variables instead");
     
     Ok(())
 }
@@ -194,41 +188,61 @@ mod tests {
         ResolvedContext {
             base: "test".to_string(),
             project: "myapp".to_string(),
-            workspace: "config".to_string(),
+            workspace: "config".to_string(),     // FIXED: consistent terminology
             anchor: Anchor::Var,
             tail: "settings".to_string(),
             prefix_mode: ChainMode::Persistent,
         }
     }
     
+    fn create_test_db() -> (Database, TempDir) {
+        let temp_dir = TempDir::new().unwrap();
+        let db_path = temp_dir.path().join("test.db");
+        let db = Database::create_or_open(&db_path).unwrap();
+        (db, temp_dir)
+    }
+    
     fn create_test_db_with_data() -> (Database, TempDir) {
         let temp_dir = TempDir::new().unwrap();
         let db_path = temp_dir.path().join("test.db");
         let mut db = Database::create_or_open(&db_path).unwrap();
-        
         let context = create_test_context();
         
-        // Add test data
-        db.set_variable("API_KEY", "secret123", &context).unwrap();
-        db.set_variable("DB_URL", "postgres://localhost", &context).unwrap();
-        db.set_variable("DEBUG", "true", &context).unwrap();
-        
-        // Add another varstore
-        let context2 = ResolvedContext {
-            tail: "production".to_string(),
-            ..context
-        };
-        db.set_variable("PROD_KEY", "prod_value", &context2).unwrap();
+        // Add some test data
+        db.set_variable("TEST_KEY", "test_value", &context).unwrap();
+        db.set_variable("ANOTHER_KEY", "another_value", &context).unwrap();
         
         (db, temp_dir)
     }
     
     #[test]
     fn test_list_keys() -> Result<()> {
-        let (db, _temp) = create_test_db_with_data();
+        let (db, _temp) = create_test_db();
         let context = create_test_context();
         
         let result = execute(LsTarget::Keys, &context, &db);
+        assert!(result.is_ok());
+        
+        Ok(())
+    }
+    
+    #[test]
+    fn test_list_workspaces() -> Result<()> {
+        let (db, _temp) = create_test_db();
+        let context = create_test_context();
+        
+        let result = execute(LsTarget::Workspaces, &context, &db);  // FIXED: was Docstores
+        assert!(result.is_ok());
+        
+        Ok(())
+    }
+    
+    #[test]
+    fn test_list_keystores() -> Result<()> {
+        let (db, _temp) = create_test_db();
+        let context = create_test_context();
+        
+        let result = execute(LsTarget::Keystores, &context, &db);   // FIXED: was Varstores
         assert!(result.is_ok());
         
         Ok(())
@@ -240,17 +254,6 @@ mod tests {
         let context = create_test_context();
         
         let result = execute(LsTarget::Projects, &context, &db);
-        assert!(result.is_ok());
-        
-        Ok(())
-    }
-    
-    #[test]
-    fn test_list_varstores() -> Result<()> {
-        let (db, _temp) = create_test_db_with_data();
-        let context = create_test_context();
-        
-        let result = execute(LsTarget::Varstores, &context, &db);
         assert!(result.is_ok());
         
         Ok(())

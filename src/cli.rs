@@ -1,3 +1,5 @@
+// src/cli.rs - Updated with consistent BOOKDB_CONCEPTS.md terminology
+
 use clap::{Parser, Subcommand, ValueEnum};
 
 #[derive(Parser, Debug, Clone)]
@@ -22,7 +24,7 @@ pub enum Command {
     Getv {
         /// variable key (final tail segment if not embedded)
         key: String,
-        /// context chain as the LAST arg: BASE@PROJECT.DOCSTORE.VAR.VARSTORE[.KEY]
+        /// context chain as the LAST arg: BASE@PROJECT.WORKSPACE.VAR.KEYSTORE[.KEY]
         context_chain: Option<String>,
     },
     /// Set variable: KEY=VALUE [CONTEXT]
@@ -46,7 +48,7 @@ pub enum Command {
         /// context chain as the LAST arg
         context_chain: Option<String>,
     },
-    /// List items in current namespace or explicit context: [keys|docs|projects|docstores|varstores] [CONTEXT]
+    /// List items in current namespace or explicit context: [keys|docs|projects|workspaces|keystores] [CONTEXT]
     Ls {
         #[arg(value_enum)]
         target: LsTarget,
@@ -60,13 +62,13 @@ pub enum Command {
         /// format override: kv|jsonl (default by content)
         #[arg(long)]
         mode: Option<String>,
-        /// rename (optional) base/project/docstore on import
+        /// rename (optional) base/project/workspace on import
         #[arg(long)]
         map_base: Option<String>,
         #[arg(long)]
         map_proj: Option<String>,
         #[arg(long)]
-        map_ds: Option<String>,
+        map_workspace: Option<String>,               // FIXED: was map_ds
         /// explicit format if needed (alias of --mode)
         #[arg(long)]
         format: Option<String>,
@@ -84,9 +86,9 @@ pub enum Command {
         #[arg(long)]
         proj: Option<String>,
         #[arg(long)]
-        ds: Option<String>,
+        workspace: Option<String>,                   // FIXED: was ds
         #[arg(long)]
-        vs: Option<String>,
+        keystore: Option<String>,                    // FIXED: was vs
         #[arg(long)]
         doc: Option<String>,
         #[arg(long)]
@@ -114,4 +116,10 @@ pub enum Command {
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
-pub enum LsTarget { Keys, Docs, Projects, Docstores, Varstores }
+pub enum LsTarget { 
+    Keys,           // List variables in current keystore
+    Docs,           // List documents in current workspace
+    Projects,       // List all projects in current base
+    Workspaces,     // FIXED: was Docstores - List workspaces in current project
+    Keystores       // FIXED: was Varstores - List keystores in current workspace
+}

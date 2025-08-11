@@ -1,10 +1,4 @@
-// src/main.rs - Updated with Phase 1 context system and installation guard
-//
-// CRITICAL CHANGES:
-// 1. Installation guard blocks usage until 'bookdb install'
-// 2. New CONCEPTS.md-compliant context system
-// 3. Stderr integration with context banners
-// 4. Proper error handling and user feedback
+// src/main.rs - Updated with consistent BOOKDB_CONCEPTS.md terminology
 
 use clap::Parser;
 use bookdb::{
@@ -130,11 +124,11 @@ fn execute_command(cli: Cli, config: Config, mut logger: Stderr) -> Result<()> {
         Some(cli::Command::Ls { target, .. }) => {
             handle_ls_command(target, &database, &resolved_context, &mut logger)
         }
-        Some(cli::Command::Export { file_path, format, proj, ds, vs, doc, key, seg, .. }) => {
-            handle_export_command(file_path, format, (proj, ds, vs, doc, key, seg), &database, &resolved_context, &mut logger)
+        Some(cli::Command::Export { file_path, format, proj, workspace, keystore, doc, key, seg, .. }) => {  // FIXED: ds→workspace, vs→keystore
+            handle_export_command(file_path, format, (proj, workspace, keystore, doc, key, seg), &database, &resolved_context, &mut logger)
         }
-        Some(cli::Command::Import { file_path, mode, map_base, map_proj, map_ds, .. }) => {
-            handle_import_command(file_path, mode, (map_base, map_proj, map_ds), &database, &resolved_context, &mut logger)
+        Some(cli::Command::Import { file_path, mode, map_base, map_proj, map_workspace, .. }) => {  // FIXED: map_ds→map_workspace
+            handle_import_command(file_path, mode, (map_base, map_proj, map_workspace), &database, &resolved_context, &mut logger)
         }
         Some(cli::Command::Getd { dik, .. }) => {
             handle_getd_command(dik, &database, &resolved_context, &mut logger)
@@ -286,11 +280,11 @@ fn handle_ls_command(
             let projects = database.list_projects(&context.base)?;
             formatter.display_namespaces(&projects, "Projects", &context.base)?;
         }
-        cli::LsTarget::Docstores => {
+        cli::LsTarget::Workspaces => {  // FIXED: was Docstores
             let workspaces = database.list_workspaces(&context.base, &context.project)?;
             formatter.display_namespaces(&workspaces, "Workspaces", &format!("{}.{}", context.base, context.project))?;
         }
-        cli::LsTarget::Varstores => {
+        cli::LsTarget::Keystores => {  // FIXED: was Varstores
             let keystores = database.list_keystores(&context.base, &context.project, &context.workspace)?;
             formatter.display_namespaces(&keystores, "Keystores", &format!("{}.{}.{}", context.base, context.project, context.workspace))?;
         }
@@ -312,6 +306,10 @@ fn handle_export_command(
     
     logger.trace_fn("export", &format!("file: {:?}, context: {}", file_path, context));
     
+    // Extract filters with updated names
+    let (proj_filter, workspace_filter, keystore_filter, doc_filter, key_filter, seg_filter) = filters;
+    // FIXED: was (proj, ds, vs, doc, key, seg) → (proj, workspace, keystore, doc, key, seg)
+    
     let format = format.unwrap_or_else(|| {
         // Auto-detect format from file extension
         file_path.extension()
@@ -328,8 +326,16 @@ fn handle_export_command(
     
     let mut progress = OperationProgress::new("Export");
     
-    // Get data to export
-    let data = database.export_data(context, &filters)?;
+    // Get data to export (apply filters if provided)
+    let data = database.export_data(context, &(
+        proj_filter.as_deref(),
+        workspace_filter.as_deref(),      // FIXED: was ds_filter
+        keystore_filter.as_deref(),       // FIXED: was vs_filter  
+        doc_filter.as_deref(),
+        key_filter.as_deref(),
+        seg_filter.as_deref()
+    ))?;
+    
     progress.set_total(data.len());
     
     // Write to file with progress tracking
@@ -361,7 +367,7 @@ fn handle_export_command(
 fn handle_import_command(
     file_path: std::path::PathBuf,
     mode: Option<String>,
-    mapping: (Option<String>, Option<String>, Option<String>),
+    mappings: (Option<String>, Option<String>, Option<String>),  // (map_base, map_proj, map_workspace)
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
@@ -375,6 +381,9 @@ fn handle_import_command(
     }
     
     let mode = mode.unwrap_or_else(|| "merge".to_string());
+    
+    // Extract mappings with updated names
+    let (_map_base, _map_proj, _map_workspace) = mappings;  // FIXED: was _map_ds
     
     // Confirm potentially destructive operation
     let mut confirm = DestructiveOpConfirm::new();
@@ -493,7 +502,7 @@ mod tests {
     fn test_context_extraction() {
         let cmd = cli::Command::Getv { 
             key: "test".to_string(), 
-            context_chain: Some("@base@proj.workspace.var.keystore".to_string()) 
+            context_chain: Some("@base@proj.workspace.var.keystore".to_string())  // FIXED: terminology
         };
         
         let context = get_context_from_command(&Some(cmd));
