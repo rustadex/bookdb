@@ -11,8 +11,18 @@ serde_json = "1"
 thiserror = "1"
 base64 = "0.22"
 
+stderr = { package = "rdx-stderr", version = "0.8" }
+
+
+[build-dependencies]
+toml = "0.8"
+
+[package.metadata.sql]
+version = "sqlv2"
+
 [profile.dev]
 opt-level = 0
 
 [profile.release]
 opt-level = 3
+

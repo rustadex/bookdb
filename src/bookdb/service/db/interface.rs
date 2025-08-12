@@ -7,7 +7,12 @@ mod workspace;
 mod keystore;
 mod docstore;
 
+
+//#[path = "rdx/stderr.rs"]
+
+
 // Re-export the main Database struct and related types
 pub use core::Database;
 pub use base::{ExportItem, BaseStats};
 pub use workspace::WorkspaceMetadata;
+

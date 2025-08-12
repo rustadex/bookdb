@@ -1,0 +1,131 @@
+// src/main.rs - Complete main entry point with all command handlers
+
+use clap::Parser;
+use std::path::PathBuf;
+
+
+mod error;
+mod sql;
+mod db;
+
+
+// mod models; // potentially unused
+
+mod ctx; //changed from context
+
+mod api; //changed from commands
+
+
+mod cli;
+
+use stderr::{Stderr, StderrConfig};
+
+use crate::error::{Result, BookdbError};
+use crate::db::Database;
+use crate::ctx::{ContextManager, parse_context_chain};
+
+
+fn main() -> Result<()> {
+    let args = cli::Cli::parse();
+    let mut logger = Stderr::new(&StderrConfig::from_env());
+    
+    // Initialize context manager
+    let mut context_manager = ContextManager::new();
+    let mut cursor_state = context_manager.load_cursor_state()?;
+    
+    // Handle global context if provided
+    if let Some(global_context) = args.context {
+        let chain = parse_context_chain(&global_context, &cursor_state.base_cursor)?;
+        if args.persist {
+            context_manager.update_cursor(&chain, &mut cursor_state)?;
+        }
+        cursor_state = bookdb::context::CursorState {
+            base_cursor: chain.base_name.clone(),
+            context_cursor: chain.clone(),
+        };
+    }
+    
+    // Open database
+    let database_path = context_manager.get_database_path(&cursor_state.base_cursor);
+    let database = if matches!(args.command, Some(cli::Command::Install {})) {
+        // Installation - create database if needed
+        Database::create_or_open(&database_path)?
+    } else {
+        // Normal operation - database must exist
+        Database::open(&database_path)?
+    };
+    
+    // Get context from command or use cursor
+    let context_chain = get_context_from_command(&args.command)
+        .map(|ctx| parse_context_chain(&ctx, &cursor_state.base_cursor))
+        .transpose()?
+        .unwrap_or_else(|| cursor_state.context_cursor.clone());
+    
+    // Resolve context for database operations
+    let resolved_context = context_manager.resolve_context(&context_chain)?;
+    
+    // Route commands
+    match args.command {
+        Some(cli::Command::Getv { key, .. }) => {
+            handle_getv_command(key, &database, &resolved_context, &mut logger)
+        }
+        Some(cli::Command::Setv { key_value, .. }) => {
+            handle_setv_command(key_value, &database, &resolved_context, &mut logger)
+        }
+        Some(cli::Command::Delv { key, .. }) => {
+            handle_delv_command(key, &database, &resolved_context, &mut logger)
+        }
+        Some(cli::Command::Inc { key, amount, .. }) => {
+            handle_inc_command(key, amount, &database, &resolved_context, &mut logger)
+        }
+        Some(cli::Command::Dec { key, amount, .. }) => {
+            handle_dec_command(key, amount, &database, &resolved_context, &mut logger)
+        }
+        Some(cli::Command::Ls { target, .. }) => {
+            handle_ls_command(target, &database, &resolved_context, &mut logger)
+        }
+        Some(cli::Command::Export { file_path, format, proj, workspace, keystore, doc, key, seg, .. }) => {
+            handle_export_command(file_path, format, (proj, workspace, keystore, doc, key, seg), &database, &resolved_context, &mut logger)
+        }
+        Some(cli::Command::Import { file_path, mode, map_base, map_proj, map_workspace, .. }) => {
+            handle_import_command(file_path, mode, (map_base, map_proj, map_workspace), &database, &resolved_context, &mut logger)
+        }
+        Some(cli::Command::Getd { dik, .. }) => {
+            handle_getd_command(dik, &database, &resolved_context, &mut logger)
+        }
+        Some(cli::Command::Setd { dik_value, .. }) => {
+            handle_setd_command(dik_value, &database, &resolved_context, &mut logger)
+        }
+        Some(cli::Command::Migrate { dry_run, .. }) => {
+            handle_migrate_command(dry_run, &database, &resolved_context, &mut logger)
+        }
+        Some(cli::Command::Use { context_str }) => {
+            handle_use_command(context_str, &mut context_manager, &mut cursor_state)
+        }
+        Some(cli::Command::Install {}) => {
+            handle_install_command(&database, &resolved_context, &mut logger)
+        }
+        None => {
+            // No command specified, show cursor status
+            handle_cursor_command(&mut context_manager, &cursor_state)
+        }
+    }
+}
+
+/// Extract context string from command if present
+fn get_context_from_command(command: &Option<cli::Command>) -> Option<String> {
+    match command {
+        Some(cli::Command::Getv { context_chain, .. }) => context_chain.clone(),
+        Some(cli::Command::Setv { context_chain, .. }) => context_chain.clone(),
+        Some(cli::Command::Delv { context_chain, .. }) => context_chain.clone(),
+        Some(cli::Command::Inc { context_chain, .. }) => context_chain.clone(),
+        Some(cli::Command::Dec { context_chain, .. }) => context_chain.clone(),
+        Some(cli::Command::Getd { context_chain, .. }) => context_chain.clone(),
+        Some(cli::Command::Setd { context_chain, .. }) => context_chain.clone(),
+        Some(cli::Command::Ls { context_chain, .. }) => context_chain.clone(),
+        Some(cli::Command::Import { context_chain, .. }) => context_chain.clone(),
+        Some(cli::Command::Export { context_chain, .. }) => context_chain.clone(),
+        Some(cli::Command::Migrate { context_chain, .. }) => context_chain.clone(),
+        _ => None,
+    }
+}

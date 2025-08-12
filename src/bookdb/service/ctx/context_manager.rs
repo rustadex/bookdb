@@ -7,7 +7,7 @@
 // 4. Interactive confirmations for destructive operations
 
 use crate::error::{Result, BookdbError};
-use crate::context::{ContextChain, ResolvedContext, CursorState, DefaultResolver};
+use crate::ctx::{ContextChain, ResolvedContext, CursorState, DefaultResolver};
 use crate::rdx::stderr::{Stderr, StderrConfig, BorderStyle};
 use crate::config::Config;
 use std::path::Path;
@@ -422,7 +422,7 @@ mod tests {
     fn test_context_banner_display() -> Result<()> {
         let (mut manager, _temp) = create_test_context_manager();
         
-        let context = crate::context::parse_context_chain("@work@proj.workspace.var.keystore", "home")?;
+        let context = crate::context::parse_context_chain("work@proj.workspace.var.keystore", "home")?;
         
         // This should not panic
         manager.show_context_banner(&context)?;

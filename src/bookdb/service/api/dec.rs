@@ -1,9 +1,9 @@
 // src/commands/dec.rs - Decrement command implementation with tests added
 
 use crate::error::{Result, BookdbError};
-use crate::context::ResolvedContext;
+use crate::ctx::ResolvedContext;
 use crate::db::Database;
-use crate::rdx::stderr::{Stderr, StderrConfig};
+use stderr::{Stderr, StderrConfig};
 
 /// Execute decrement command: atomically decrement a numeric variable
 pub fn execute(

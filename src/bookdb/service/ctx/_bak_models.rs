@@ -1,5 +1,7 @@
 // src/models.rs - Updated with consistent BOOKDB_CONCEPTS.md terminology
 
+// todo: is this even being used anywhere?
+
 use serde::{Deserialize, Serialize};
 
 /// Represents the active context for database operations.

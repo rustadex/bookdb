@@ -1,5 +1,8 @@
+
+
 use crate::config::Paths;
 use crate::error::Result;
+
 use std::fs;
 
 pub fn read_cursor(paths: &Paths) -> (Option<String>, Option<String>) {

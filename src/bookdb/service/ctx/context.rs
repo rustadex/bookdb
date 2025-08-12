@@ -72,29 +72,29 @@ pub struct ResolvedContext {
 
 impl fmt::Display for ContextChain {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.is_fqcc {
-            // FQCC: base@project.workspace.anchor.tail (no prefix)
-            let base_part = self.base.as_ref().unwrap();
-            let anchor_str = match self.anchor {
-                Anchor::Var => "var",
-                Anchor::Doc => "doc",
-            };
-            write!(f, "{}@{}.{}.{}.{}", 
-                   base_part, self.project, self.workspace, anchor_str, self.tail)
-        } else {
-            // CDCC: prefix+project.workspace.anchor.tail
-            let prefix = match self.prefix_mode {
-                ChainMode::Persistent => '@',
-                ChainMode::Ephemeral => '%',
-                ChainMode::Action => '#',
-            };
-            let anchor_str = match self.anchor {
-                Anchor::Var => "var",
-                Anchor::Doc => "doc",
-            };
-            write!(f, "{}{}.{}.{}.{}", 
-                   prefix, self.project, self.workspace, anchor_str, self.tail)
-        }
+      if self.is_fqcc {
+        // FQCC: base@project.workspace.anchor.tail
+        let base_part = self.base.as_ref().unwrap();
+        let anchor_str = match self.anchor {
+            Anchor::Var => "var",
+            Anchor::Doc => "doc",
+        };
+        write!(f, "{}@{}.{}.{}.{}", 
+                base_part, self.project, self.workspace, anchor_str, self.tail)
+      } else {
+        // CDCC: prefix+project.workspace.anchor.tail
+        let prefix = match self.prefix_mode {
+            ChainMode::Persistent => '@',
+            ChainMode::Ephemeral => '%',
+            ChainMode::Action => '#',
+        };
+        let anchor_str = match self.anchor {
+            Anchor::Var => "var",
+            Anchor::Doc => "doc",
+        };
+        write!(f, "{}{}.{}.{}.{}", 
+                prefix, self.project, self.workspace, anchor_str, self.tail)
+      }
     }
 }
 

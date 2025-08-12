@@ -1,10 +1,14 @@
 // src/db/core.rs - Core database functionality
 
-use crate::error::{Result, BookdbError};
-use crate::rdx::stderr::{Stderr, StderrConfig};
-use crate::sql;
-use rusqlite::{Connection, Transaction};
 use std::path::Path;
+use stderr::{Stderr, StderrConfig};
+use rusqlite::{Connection, Transaction};
+
+use crate::error::{Result, BookdbError};
+
+use crate::sql;
+
+
 
 /// Core database connection and schema management
 pub struct Database {
