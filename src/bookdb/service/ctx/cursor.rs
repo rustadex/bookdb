@@ -13,9 +13,6 @@ use std::fs;
 
 
 
-
-
-
 impl CursorState {
     /// Load cursor state from disk
     pub fn load_from_disk(config: &Config) -> Result<Self> {
