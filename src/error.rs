@@ -11,9 +11,14 @@ pub enum BookdbError {
     ContextParse(String),
     #[error("not found: {0}")]
     KeyNotFound(String),
-    #[allow(dead_code)]
     #[error("database error: {0}")]
     Database(String),
+    #[error("non-numeric value: key '{0}' has value '{1}' which is not a number")]
+    NonNumericValue(String, String),
+    #[error("numeric overflow: operation would result in overflow")]
+    NumericOverflow,
+    #[error("key not found for numeric operation: {0}")]
+    NumericKeyNotFound(String),
     #[error(transparent)]
     Sql(#[from] rusqlite::Error),
     #[error(transparent)]
@@ -21,3 +26,5 @@ pub enum BookdbError {
     #[error(transparent)]
     Serde(#[from] serde_json::Error),
 }
+
+// Added numeric error types for inc/dec operations

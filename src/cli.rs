@@ -1,36 +1,61 @@
-// src/cli.rs - Updated with consistent BOOKDB_CONCEPTS.md terminology
-
 use clap::{Parser, Subcommand, ValueEnum};
 
-#[derive(Parser, Debug, Clone)]
-#[command(name="bookdb")]
-#[command(about="bookdb")]
+#[derive(Debug, Parser)]
+#[command(name = "bookdb")]
+#[command(about = "BookDB - Context-aware key-value and document store")]
 pub struct Cli {
-    /// Enable debug logging to stderr
-    #[arg(long)]
-    pub debug: bool,
-
-    /// Enable trace logging to stderr
-    #[arg(long)]
-    pub trace: bool,
-
+    /// Enable global context chain (parsed before command)
+    #[arg(long, global = true)]
+    pub context: Option<String>,
+    
+    /// Persist context chain as cursor for subsequent commands
+    #[arg(long, global = true)]
+    pub persist: bool,
+    
     #[command(subcommand)]
     pub command: Option<Command>,
 }
 
-#[derive(Subcommand, Debug, Clone)]
+#[derive(Debug, Subcommand)]
 pub enum Command {
     /// Get variable: KEY [CONTEXT]
     Getv {
-        /// variable key (final tail segment if not embedded)
+        /// variable key to retrieve
         key: String,
-        /// context chain as the LAST arg: BASE@PROJECT.WORKSPACE.VAR.KEYSTORE[.KEY]
+        /// context chain as the LAST arg
         context_chain: Option<String>,
     },
     /// Set variable: KEY=VALUE [CONTEXT]
     Setv {
-        /// key=value (VALUE may be quoted)
+        /// e.g. "API_KEY=12345"
         key_value: String,
+        /// context chain as the LAST arg
+        context_chain: Option<String>,
+    },
+    /// Delete variable: KEY [CONTEXT]
+    Delv {
+        /// variable key to delete
+        key: String,
+        /// context chain as the LAST arg
+        context_chain: Option<String>,
+    },
+    /// Increment numeric variable: KEY [CONTEXT]
+    Inc {
+        /// variable key to increment
+        key: String,
+        /// amount to increment by (default: 1)
+        #[arg(short, long, default_value = "1")]
+        amount: i64,
+        /// context chain as the LAST arg
+        context_chain: Option<String>,
+    },
+    /// Decrement numeric variable: KEY [CONTEXT]
+    Dec {
+        /// variable key to decrement
+        key: String,
+        /// amount to decrement by (default: 1)
+        #[arg(short, long, default_value = "1")]
+        amount: i64,
         /// context chain as the LAST arg
         context_chain: Option<String>,
     },
@@ -68,7 +93,7 @@ pub enum Command {
         #[arg(long)]
         map_proj: Option<String>,
         #[arg(long)]
-        map_workspace: Option<String>,               // FIXED: was map_ds
+        map_workspace: Option<String>,
         /// explicit format if needed (alias of --mode)
         #[arg(long)]
         format: Option<String>,
@@ -86,9 +111,9 @@ pub enum Command {
         #[arg(long)]
         proj: Option<String>,
         #[arg(long)]
-        workspace: Option<String>,                   // FIXED: was ds
+        workspace: Option<String>,
         #[arg(long)]
-        keystore: Option<String>,                    // FIXED: was vs
+        keystore: Option<String>,
         #[arg(long)]
         doc: Option<String>,
         #[arg(long)]
@@ -120,6 +145,8 @@ pub enum LsTarget {
     Keys,           // List variables in current keystore
     Docs,           // List documents in current workspace
     Projects,       // List all projects in current base
-    Workspaces,     // FIXED: was Docstores - List workspaces in current project
-    Keystores       // FIXED: was Varstores - List keystores in current workspace
+    Workspaces,     // List workspaces in current project
+    Keystores       // List keystores in current workspace
 }
+
+// Added Inc and Dec commands for atomic operations
