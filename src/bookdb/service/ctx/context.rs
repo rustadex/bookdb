@@ -1,100 +1,42 @@
-// src/context.rs - Complete rewrite for BOOKDB_CONCEPTS.md compliance
-//
-// CRITICAL FIXES:
-// 1. project.docstore.VAR.varstore → project.workspace.var.keystore
-// 2. Add FQCC and CDCC resolution modes
-// 3. Add ROOT.GLOBAL.VAR.MAIN invincible superchain support
-// 4. Context atomicity enforcement
-// 5. Proper chain prefix handling (@, %, #)
+// src/bookdb/service/ctx/context.rs
+// Context chain parsing and display implementations
+// Types imported from typesV1, DefaultResolver moved to resolver.rs
 
-use serde::{Deserialize, Serialize};
 use std::fmt;
 use crate::error::{Result, BookdbError};
 
-/// Represents a fully parsed Context Chain per BOOKDB_CONCEPTS.md
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ContextChain {
-    /// Base name (from base@ prefix) - None means use cursor default
-    pub base: Option<String>,
-    /// Project name (top-level container)
-    pub project: String,
-    /// Workspace name (was incorrectly called "docstore" in old version)
-    pub workspace: String,
-    /// Anchor type: VAR or DOC (case-insensitive)
-    pub anchor: Anchor,
-    /// Tail: keystore name (for var) or document_key (for doc)
-    pub tail: String,
-    /// Chain prefix mode
-    pub prefix_mode: ChainMode,
-    /// Whether this is a Fully Qualified Context Chain (has explicit base@)
-    pub is_fqcc: bool,
-}
+// Import types from typesV1 instead of defining them here
+use super::typesV1::{ContextChain, ResolvedContext, Anchor, ChainMode};
 
-/// Type specifier anchor per CONCEPTS.md
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum Anchor {
-    /// Variable store access (.var.)
-    Var,
-    /// Document store access (.doc.)
-    Doc,
-}
-
-/// Chain prefix modes per CONCEPTS.md Section 2b
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum ChainMode {
-    /// @ - Persistent: updates cursor permanently
-    Persistent,
-    /// % - Ephemeral: one-time use, cursor unchanged
-    Ephemeral,
-    /// # - Action: implicit action mode (ROADMAP)
-    Action,
-}
-
-/// Cursor state for CDCC resolution
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CursorState {
-    /// Current active base
-    pub base_cursor: String,
-    /// Current context within that base
-    pub context_cursor: Option<ContextChain>,
-}
-
-/// Resolved context with all fields populated
-#[derive(Debug, Clone)]
-pub struct ResolvedContext {
-    pub base: String,
-    pub project: String,
-    pub workspace: String,
-    pub anchor: Anchor,
-    pub tail: String,
-    pub prefix_mode: ChainMode,
-}
+// ============================================================================
+// DISPLAY IMPLEMENTATIONS
+// ============================================================================
 
 impl fmt::Display for ContextChain {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-      if self.is_fqcc {
-        // FQCC: base@project.workspace.anchor.tail
-        let base_part = self.base.as_ref().unwrap();
-        let anchor_str = match self.anchor {
-            Anchor::Var => "var",
-            Anchor::Doc => "doc",
-        };
-        write!(f, "{}@{}.{}.{}.{}", 
-                base_part, self.project, self.workspace, anchor_str, self.tail)
-      } else {
-        // CDCC: prefix+project.workspace.anchor.tail
-        let prefix = match self.prefix_mode {
-            ChainMode::Persistent => '@',
-            ChainMode::Ephemeral => '%',
-            ChainMode::Action => '#',
-        };
-        let anchor_str = match self.anchor {
-            Anchor::Var => "var",
-            Anchor::Doc => "doc",
-        };
-        write!(f, "{}{}.{}.{}.{}", 
-                prefix, self.project, self.workspace, anchor_str, self.tail)
-      }
+        if self.is_fqcc {
+            // FQCC: base@project.workspace.anchor.tail
+            let base_part = self.base.as_ref().unwrap();
+            let anchor_str = match self.anchor {
+                Anchor::Var => "var",
+                Anchor::Doc => "doc",
+            };
+            write!(f, "{}@{}.{}.{}.{}", 
+                    base_part, self.project, self.workspace, anchor_str, self.tail)
+        } else {
+            // CDCC: prefix+project.workspace.anchor.tail
+            let prefix = match self.prefix_mode {
+                ChainMode::Persistent => '@',
+                ChainMode::Ephemeral => '%',
+                ChainMode::Action => '#',
+            };
+            let anchor_str = match self.anchor {
+                Anchor::Var => "var",
+                Anchor::Doc => "doc",
+            };
+            write!(f, "{}{}.{}.{}.{}", 
+                    prefix, self.project, self.workspace, anchor_str, self.tail)
+        }
     }
 }
 
@@ -108,14 +50,9 @@ impl fmt::Display for ResolvedContext {
     }
 }
 
-impl Default for CursorState {
-    fn default() -> Self {
-        CursorState {
-            base_cursor: "home".to_string(),
-            context_cursor: None,
-        }
-    }
-}
+// ============================================================================
+// CORE PARSING FUNCTION
+// ============================================================================
 
 /// Parse a context chain string according to BOOKDB_CONCEPTS.md
 pub fn parse_context_chain(raw: &str, fallback_base: &str) -> Result<ContextChain> {
@@ -218,79 +155,9 @@ pub fn parse_context_chain(raw: &str, fallback_base: &str) -> Result<ContextChai
     })
 }
 
-/// Default resolver for CDCC and atomicity rules
-pub struct DefaultResolver;
-
-impl DefaultResolver {
-    pub fn new() -> Self {
-        DefaultResolver
-    }
-    
-    /// Resolve a Cursor-Dependent Context Chain using cursor defaults
-    pub fn resolve_cdcc(&self, partial: &ContextChain, cursors: &CursorState) -> ResolvedContext {
-        // Use cursor defaults for missing base
-        let base = partial.base.as_ref()
-            .unwrap_or(&cursors.base_cursor)
-            .clone();
-        
-        ResolvedContext {
-            base,
-            project: partial.project.clone(),
-            workspace: partial.workspace.clone(),
-            anchor: partial.anchor,
-            tail: partial.tail.clone(),
-            prefix_mode: partial.prefix_mode,
-        }
-    }
-    
-    /// Apply context atomicity rules per CONCEPTS.md
-    /// When parent context changes, children should reset to defaults
-    pub fn apply_atomicity(&self, old_context: &ContextChain, new_context: &ContextChain) -> ContextChain {
-        let mut result = new_context.clone();
-        
-        // Rule: If project changes, reset workspace and tail to defaults
-        if old_context.project != new_context.project {
-            result.workspace = "GLOBAL".to_string();
-            result.tail = "MAIN".to_string();
-        }
-        // Rule: If workspace changes but project same, reset tail to default
-        else if old_context.workspace != new_context.workspace {
-            result.tail = "MAIN".to_string();
-        }
-        
-        result
-    }
-    
-    /// Create the invincible superchain: ROOT.GLOBAL.VAR.MAIN
-    pub fn create_invincible_superchain(base: &str) -> ContextChain {
-        ContextChain {
-            base: Some(base.to_string()),
-            project: "ROOT".to_string(),
-            workspace: "GLOBAL".to_string(),
-            anchor: Anchor::Var,
-            tail: "MAIN".to_string(),
-            prefix_mode: ChainMode::Persistent,
-            is_fqcc: true,
-        }
-    }
-    
-    /// Check if a context chain represents the invincible superchain
-    pub fn is_invincible_superchain(&self, context: &ContextChain) -> bool {
-        context.project == "ROOT" &&
-        context.workspace == "GLOBAL" &&
-        matches!(context.anchor, Anchor::Var) &&
-        context.tail == "MAIN"
-    }
-}
-
-// Legacy compatibility for existing code
-// #[derive(Debug, Clone)]
-// pub enum ResolvedContextIds {
-//     Variables { vs_id: i64, base_id: i64, proj_id: i64, ds_id: i64 },
-//     Document { base_id: i64, proj_id: i64, ds_id: i64 },
-//     PartialVars { base_id: i64, proj_id: i64, ds_id: i64 },
-//     PartialDocs { base_id: i64, proj_id: i64, ds_id: i64 },
-// }
+// ============================================================================
+// TESTS
+// ============================================================================
 
 #[cfg(test)]
 mod tests {
@@ -364,68 +231,6 @@ mod tests {
         assert_eq!(chain1.anchor, Anchor::Var);
         assert_eq!(chain2.anchor, Anchor::Var);
         assert_eq!(chain3.anchor, Anchor::Var);
-        
-        Ok(())
-    }
-    
-    #[test]
-    fn test_invincible_superchain() {
-        let superchain = DefaultResolver::create_invincible_superchain("home");
-        let resolver = DefaultResolver::new();
-        
-        assert_eq!(superchain.project, "ROOT");
-        assert_eq!(superchain.workspace, "GLOBAL");
-        assert_eq!(superchain.anchor, Anchor::Var);
-        assert_eq!(superchain.tail, "MAIN");
-        assert!(resolver.is_invincible_superchain(&superchain));
-    }
-    
-    #[test]
-    fn test_context_atomicity() -> Result<()> {
-        let resolver = DefaultResolver::new();
-        
-        let old_context = parse_context_chain("@proj1.workspace1.var.store1", "work")?;
-        let new_context = parse_context_chain("@proj2.workspace1.var.store1", "work")?;
-        
-        // Changing project should reset to MAIN keystore, not keep store1
-        let resolved = resolver.apply_atomicity(&old_context, &new_context);
-        assert_eq!(resolved.workspace, "GLOBAL"); // Reset to default
-        assert_eq!(resolved.tail, "MAIN"); // Reset to default
-        
-        Ok(())
-    }
-    
-    #[test]
-    fn test_workspace_change_atomicity() -> Result<()> {
-        let resolver = DefaultResolver::new();
-        
-        let old_context = parse_context_chain("@proj1.workspace1.var.store1", "work")?;
-        let new_context = parse_context_chain("@proj1.workspace2.var.store1", "work")?;
-        
-        // Changing workspace should reset tail to MAIN
-        let resolved = resolver.apply_atomicity(&old_context, &new_context);
-        assert_eq!(resolved.project, "proj1"); // Same project
-        assert_eq!(resolved.workspace, "workspace2"); // New workspace
-        assert_eq!(resolved.tail, "MAIN"); // Reset to default
-        
-        Ok(())
-    }
-    
-    #[test]
-    fn test_cdcc_resolution() -> Result<()> {
-        let chain = parse_context_chain("@proj.workspace.var.store", "fallback")?;
-        let cursors = CursorState {
-            base_cursor: "work".to_string(),
-            context_cursor: None,
-        };
-        
-        let resolver = DefaultResolver::new();
-        let resolved = resolver.resolve_cdcc(&chain, &cursors);
-        
-        assert_eq!(resolved.base, "fallback"); // Uses chain base, not cursor
-        assert_eq!(resolved.project, "proj");
-        assert_eq!(resolved.workspace, "workspace");
-        assert_eq!(resolved.tail, "store");
         
         Ok(())
     }

@@ -7,6 +7,7 @@
 
 use serde::{Deserialize, Serialize};
 
+
 // ============================================================================
 // CORE CONTEXT CHAIN TYPES (CURRENT - WORKING)
 // ============================================================================
@@ -48,6 +49,24 @@ pub struct CursorState {
     pub base_cursor: String,
     /// Current context within that base
     pub context_cursor: Option<ContextChain>,
+}
+
+
+
+// ============================================================================
+// DEFAULT IMPLEMENTATIONS (TYPES ONLY)
+// ============================================================================
+
+/// Default resolver for CDCC and atomicity rules
+pub struct DefaultResolver;
+
+impl Default for CursorState {
+    fn default() -> Self {
+        CursorState {
+            base_cursor: "home".to_string(),
+            context_cursor: None,
+        }
+    }
 }
 
 // ============================================================================
