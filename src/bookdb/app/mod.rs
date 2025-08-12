@@ -9,10 +9,6 @@ pub mod config;
 pub mod error;
 
 
-#[path = "sup/info.rs"]
-pub mod info;
-
-
 
 #[path = "admin/install.rs"]
 pub mod install;
@@ -22,7 +18,7 @@ pub mod install;
 #[path = "ctrl/cli.rs"]
 pub mod cli;
 
-#[path = "ctrl/hanlders.rs"]
+#[path = "ctrl/handlers.rs"]
 pub mod hanlders;
 
 #[path = "ctrl/dispatch.rs"]
