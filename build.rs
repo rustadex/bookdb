@@ -1,7 +1,7 @@
 use std::{env, fs, path::PathBuf};
 
 
-pub fn build_const_from_dir(src_dir:mut &str, out_path:&str) -> (){
+pub fn build_const_from_dir(src_dir:&PathBuf, out_path:&PathBuf, sql_version:&str) -> (){
 
   let mut buf = String::new();
 
@@ -50,17 +50,24 @@ fn main() {
     println!("cargo:rustc-env=SQL_VERSION={}", sql_version);
 
     // ----- scan folder and generate consts
-    let sql_dir = manifest_dir.join("src/db/data").join(sql_version);
+    let sql_dir = manifest_dir.join("src/bookdb/service/db/data/").join(sql_version);
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap()).join("sql_consts.rs");
 
 
-    build_const_from_dir(&sql_dir);
+    build_const_from_dir(&sql_dir, &out_path, &sql_version);
 
 
     // ----- rebuild rules
     println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo:rerun-if-changed=src/service/db/data/{}", sql_version);
+    println!("cargo:rerun-if-changed=src/bookdb/service/db/data/{}", sql_version);
     println!("cargo:rerun-if-changed=Cargo.toml");
     
+    for entry in fs::read_dir(&sql_dir)? {
+        let p = entry?.path();
+        if p.extension().and_then(|s| s.to_str()) == Some("sql") {
+            println!("cargo:rerun-if-changed={}", p.display());
+        }
+    }
+
 
   }

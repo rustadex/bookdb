@@ -13,9 +13,21 @@ base64 = "0.22"
 
 stderr = { package = "rdx-stderr", version = "0.8" }
 
+[features]
+default = ["context-chain-v1"]
+
+# Context chain version features (mutually exclusive)
+context-chain-v1 = []
+context-chain-v3 = []
+
+# Optional: Development features
+dev-both-versions = ["context-chain-v1", "context-chain-v3"]  # For testing/migration
+
 
 [build-dependencies]
 toml = "0.8"
+
+
 
 [package.metadata.sql]
 version = "sqlv2"

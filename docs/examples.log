@@ -1,0 +1,13 @@
+
+# Default (V1)
+cargo build
+
+# V3 explicitly
+cargo build --features context-chain-v3 --no-default-features
+
+# Development (both versions for testing)
+cargo build --features dev-both-versions --no-default-features
+
+# Testing migration
+cargo test --features context-chain-v1
+cargo test --features context-chain-v3

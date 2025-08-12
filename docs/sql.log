@@ -1,0 +1,148 @@
+// ============================================================================
+// BookDB SQL Grammar Reference - sql-grammar.log
+// Generated from sqlv2 schema analysis
+// ============================================================================
+
+// ============================================================================
+// CORE ENTITY TABLES (Primary Storage)
+// ============================================================================
+
+TABLE: project_ns
+  DESCRIPTION: Project namespaces (top-level containers)
+  COLUMNS:
+    - pns_id         INTEGER PRIMARY KEY     (Project Namespace ID)
+    - pns_name       TEXT UNIQUE NOT NULL    (Project name, e.g., "website", "myapp")
+  
+  NOTES: 
+    - Replaces old "projects" table from sqlv1
+    - Each base can have multiple project namespaces
+    - Examples: "website", "infrastructure", "personal"
+
+TABLE: keyval_ns  
+  DESCRIPTION: Key-value namespaces (variable containers within projects)
+  COLUMNS:
+    - kvns_id        INTEGER PRIMARY KEY     (KeyVal Namespace ID)
+    - kvns_name      TEXT NOT NULL           (Keystore name, e.g., "secrets", "config")
+    - workspace_name TEXT NOT NULL           (Workspace name, e.g., "production", "staging")
+    - pns_id_fk      INTEGER                 (Foreign key to project_ns.pns_id)
+  
+  CONSTRAINTS:
+    - FOREIGN KEY (pns_id_fk) REFERENCES project_ns(pns_id) ON DELETE CASCADE
+    - UNIQUE (kvns_name, pns_id_fk, workspace_name)
+  
+  NOTES:
+    - Replaces old "docstores" + "varstores" concepts from sqlv1
+    - Combined workspace and keystore into single table
+    - workspace_name field added for CONCEPTS.md compliance
+
+TABLE: vars
+  DESCRIPTION: Individual key-value pairs
+  COLUMNS:
+    - var_id         INTEGER PRIMARY KEY     (Variable ID)
+    - var_key        TEXT NOT NULL           (Variable key, e.g., "API_KEY", "PORT")
+    - var_value      TEXT                    (Variable value)
+    - var_updated    INTEGER                 (Unix timestamp of last update)
+    - kvns_id_fk     INTEGER                 (Foreign key to keyval_ns.kvns_id)
+  
+  CONSTRAINTS:
+    - FOREIGN KEY (kvns_id_fk) REFERENCES keyval_ns(kvns_id) ON DELETE CASCADE
+    - UNIQUE (var_key, kvns_id_fk)
+  
+  NOTES:
+    - Same structure as sqlv1 but references keyval_ns instead of varstores
+    - Supports atomic operations (inc/dec) for numeric values
+
+// ============================================================================
+// DOCUMENT STORAGE TABLES
+// ============================================================================
+
+TABLE: docs
+  DESCRIPTION: Document metadata and simple content
+  COLUMNS:
+    - doc_id         INTEGER PRIMARY KEY     (Document ID)
+    - doc_key        TEXT NOT NULL           (Document identifier)
+    - ds_id_fk       INTEGER NOT NULL        (Foreign key to document store)
+    - created_at     INTEGER DEFAULT NOW     (Creation timestamp)
+    - updated_at     INTEGER DEFAULT NOW     (Last update timestamp)
+  
+  CONSTRAINTS:
+    - FOREIGN KEY (ds_id_fk) REFERENCES docstores(ds_id) ON DELETE CASCADE
+    - UNIQUE (ds_id_fk, doc_key)
+
+TABLE: doc_segments
+  DESCRIPTION: Multi-part document content with MIME types
+  COLUMNS:
+    - seg_id         INTEGER PRIMARY KEY     (Segment ID)
+    - path           TEXT NOT NULL           (Segment path, e.g., "header", "body")
+    - mime           TEXT DEFAULT 'text/plain' (MIME type)
+    - content        BLOB NOT NULL           (Segment content)
+    - updated_at     INTEGER DEFAULT NOW     (Last update timestamp)
+    - doc_id_fk      INTEGER NOT NULL        (Foreign key to docs.doc_id)
+  
+  CONSTRAINTS:
+    - FOREIGN KEY (doc_id_fk) REFERENCES docs(doc_id) ON DELETE CASCADE
+    - UNIQUE (doc_id_fk, path)
+
+// ============================================================================
+// SCHEMA EVOLUTION (sqlv1 → sqlv2)
+// ============================================================================
+
+DEPRECATED (sqlv1):          CURRENT (sqlv2):
+projects                  →  project_ns
+  - p_id                  →    - pns_id
+  - p_name                →    - pns_name
+
+docstores                 →  MERGED INTO keyval_ns
+  - ds_id                 →    (workspace concept)
+  - ds_name               →    
+  - p_id_fk               →    
+
+varstores                 →  keyval_ns
+  - vs_id                 →    - kvns_id
+  - vs_name               →    - kvns_name
+  - ds_id_fk              →    - workspace_name (NEW FIELD)
+                               - pns_id_fk
+
+vars (UNCHANGED STRUCTURE)
+  - var_id                     - var_id
+  - var_key                    - var_key
+  - var_value                  - var_value
+  - vs_id_fk              →    - kvns_id_fk
+
+// ============================================================================
+// CONTEXT RESOLUTION MAPPINGS
+// ============================================================================
+
+CONTEXT CHAIN: base@project.workspace.var.keystore
+
+RESOLVES TO:
+  1. base         → Database file: {base}.sqlite3
+  2. project      → project_ns.pns_name
+  3. workspace    → keyval_ns.workspace_name
+  4. var          → Indicates variables (not documents)
+  5. keystore     → keyval_ns.kvns_name
+
+SQL QUERY PATTERN:
+  SELECT v.var_value 
+  FROM vars v 
+  JOIN keyval_ns kvns ON v.kvns_id_fk = kvns.kvns_id 
+  JOIN project_ns pns ON kvns.pns_id_fk = pns.pns_id 
+  WHERE pns.pns_name = ?1        -- project
+    AND kvns.workspace_name = ?2 -- workspace
+    AND kvns.kvns_name = ?3      -- keystore
+    AND v.var_key = ?4           -- key
+
+// ============================================================================
+// QUERY PATTERNS BY OPERATION
+// ============================================================================
+
+VARIABLE OPERATIONS:
+  - GET:    Requires (project, workspace, keystore, key)
+  - SET:    Requires (project, workspace, keystore, key, value)
+  - LIST:   Requires (project, workspace, keystore)
+  - DELETE: Requires (project, workspace, keystore, key)
+
+LISTING OPERATIONS:
+  - Projects:   SELECT pns_name FROM project_ns
+  - Workspaces: SELECT DISTINCT workspace_name FROM keyval_ns WHERE pns_id_fk = ?
+  - Keystores:  SELECT kvns_name FROM keyval_ns WHERE pns_id_fk = ? AND workspace_name = ?

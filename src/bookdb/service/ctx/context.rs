@@ -284,13 +284,13 @@ impl DefaultResolver {
 }
 
 // Legacy compatibility for existing code
-#[derive(Debug, Clone)]
-pub enum ResolvedContextIds {
-    Variables { vs_id: i64, base_id: i64, proj_id: i64, ds_id: i64 },
-    Document { base_id: i64, proj_id: i64, ds_id: i64 },
-    PartialVars { base_id: i64, proj_id: i64, ds_id: i64 },
-    PartialDocs { base_id: i64, proj_id: i64, ds_id: i64 },
-}
+// #[derive(Debug, Clone)]
+// pub enum ResolvedContextIds {
+//     Variables { vs_id: i64, base_id: i64, proj_id: i64, ds_id: i64 },
+//     Document { base_id: i64, proj_id: i64, ds_id: i64 },
+//     PartialVars { base_id: i64, proj_id: i64, ds_id: i64 },
+//     PartialDocs { base_id: i64, proj_id: i64, ds_id: i64 },
+// }
 
 #[cfg(test)]
 mod tests {
