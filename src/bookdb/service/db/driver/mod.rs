@@ -1,15 +1,16 @@
 // src/db/mod.rs - Database module organization
 
+
 mod core;
-mod base;
+mod dbutils;
 mod project;
 mod workspace;
 mod keystore;
 mod docstore;
 
+mod manager; //for managing base.sqlite3 files multi-base support
 
-//#[path = "rdx/stderr.rs"]
-
+// sql constants are now dynamically generated from build.rs
 
 // Re-export the main Database struct and related types
 pub use core::Database;

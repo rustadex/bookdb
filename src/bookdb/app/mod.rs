@@ -1,6 +1,7 @@
 
+// app sub package
 
-
+//Support Functions
 #[path = "sup/config.rs"]
 pub mod config;
 
@@ -13,9 +14,16 @@ pub mod info;
 
 
 
-#[path = "utils/install.rs"]
+#[path = "admin/install.rs"]
 pub mod install;
 
+// cli controller
 
-#[path = "ux/cli.rs"]
+#[path = "ctrl/cli.rs"]
 pub mod cli;
+
+#[path = "ctrl/hanlders.rs"]
+pub mod hanlders;
+
+#[path = "ctrl/dispatch.rs"]
+pub mod dispatch;

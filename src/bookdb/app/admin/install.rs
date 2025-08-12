@@ -3,12 +3,14 @@
 // CRITICAL: Blocks all BookDB usage until 'bookdb install' is run
 // Prevents data corruption and ensures proper initialization
 
+use stderr::{Stderr, StderrConfig};
+use std::path::Path;
+
 use crate::error::{Result, BookdbError};
 use crate::context::{ContextChain, DefaultResolver, Anchor, ChainMode};
 use crate::db::Database;
 use crate::config::Config;
-use std::path::Path;
-use crate::rdx::stderr::{Stderr, StderrConfig};
+
 
 /// Installation guard that blocks usage until proper setup
 pub struct InstallationGuard {

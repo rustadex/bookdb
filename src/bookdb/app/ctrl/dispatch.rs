@@ -25,7 +25,7 @@ use crate::db::Database;
 use crate::ctx::{ContextManager, parse_context_chain};
 
 
-fn main() -> Result<()> {
+fn dispatch() -> Result<()> {
     let args = cli::Cli::parse();
     let mut logger = Stderr::new(&StderrConfig::from_env());
     

@@ -3,8 +3,8 @@ use colored::Colorize;
 
 const CLI_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-fn print_logo(){
-    const LOGO_TEXT: &str = include_str!("../logo.log");
+fn logo(){
+    const LOGO_TEXT: &str = include_str!("../../docs/logo.log");
     println!("{}", LOGO_TEXT.cyan());
 }
 
@@ -13,7 +13,7 @@ fn version(){
         return;
     }
 
-    print_logo;
+    logo;
     // Dynamically create the version string
     let version_string = format!(
         "          CLI   v{:<8}",  CLI_VERSIO
