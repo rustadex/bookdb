@@ -13,12 +13,12 @@ use crate::config::Config;
 
 
 /// Installation guard that blocks usage until proper setup
-pub struct InstallationGuard {
+pub struct InstallGuard {
     config: Config,
     logger: Stderr,
 }
 
-impl InstallationGuard {
+impl InstallGuard {
     pub fn new(config: Config) -> Self {
         let logger = Stderr::new(&StderrConfig::from_env());
         Self { config, logger }
@@ -178,7 +178,7 @@ impl InstallationManager {
             return Ok(false);
         }
         
-        let guard = InstallationGuard::new(self.config.clone());
+        let guard = InstallGuard::new(self.config.clone());
         match guard.check_installation_meta(&home_db_path) {
             Ok(installed) => Ok(installed),
             Err(_) => Ok(false), // Treat errors as not installed
@@ -287,7 +287,7 @@ pub fn require_installation_or_install(config: &Config, is_install_command: bool
         return Ok(());
     }
     
-    let mut guard = InstallationGuard::new(config.clone());
+    let mut guard = InstallGuard::new(config.clone());
     guard.require_installation()
 }
 
@@ -307,7 +307,7 @@ mod tests {
     #[test]
     fn test_installation_guard_blocks_when_not_installed() {
         let (config, _temp) = create_test_config();
-        let mut guard = InstallationGuard::new(config);
+        let mut guard = InstallGuard::new(config);
         
         // Should fail when not installed
         assert!(guard.require_installation().is_err());
@@ -322,7 +322,7 @@ mod tests {
         manager.perform_installation()?;
         
         // Verify installation
-        let mut guard = InstallationGuard::new(config);
+        let mut guard = InstallGuard::new(config);
         assert!(guard.require_installation().is_ok());
         
         Ok(())

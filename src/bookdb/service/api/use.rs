@@ -9,7 +9,7 @@
 use crate::error::{Result, BookdbError};
 use crate::context::{parse_context_chain, ResolvedContext};
 use crate::db::Database;
-use crate::rdx::stderr::{Stderr, StderrConfig};
+use stderr::{Stderr, StderrConfig};
 
 /// Execute use command: change active context
 pub fn execute(
