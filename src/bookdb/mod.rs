@@ -31,23 +31,19 @@ pub mod context {
 pub use service::ctx::ContextManager;
 // --------------------------------------------------------------------
 
-// pub mod app;
-// pub mod service;
-
-
+// FIXED: Added missing service module declaration
+pub mod service;
 
 pub mod info {
   use crate::utils::info::*;
 }
 
+// TODO: Re-enable when app module is ready
+// pub mod app;
 // pub use app::sup::error; 
 // pub use app::ctrl::{ dispatch as run };
-
-
-
-
 // pub use app::install::{ 
 //   InstallGuard, 
 //   InstallationManager, 
 //   require_installation_or_install 
-// }; 
+// };

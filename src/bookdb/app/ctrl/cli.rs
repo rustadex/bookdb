@@ -166,3 +166,37 @@ fn get_context_from_command(command: &Option<cli::Command>) -> Option<String> {
         _ => None,
     }
 }
+
+
+  //missing functions
+
+        // Commands::Reset { context_chain, no_confirm } => {
+        //     if config.dry_run {
+        //         logger.info(&format!("DRY RUN: Would reset context '{}'", context_chain));
+        //         return Ok(());
+        //     }
+            
+        //     execute_reset(context_chain, *no_confirm, db_path, config, logger)
+        // }
+        
+        // Commands::Validate { context_chain } => {
+        //     execute_validate(context_chain, config, logger)
+        // }
+        
+        // Commands::Stats { context_chain } => {
+        //     let context = if let Some(cc) = context_chain {
+        //         resolve_context_chain(&Some(cc.clone()), base_context, config, logger)?
+        //     } else {
+        //         base_context.to_string()
+        //     };
+        //     execute_stats(&context, db_path, config, logger)
+        // }
+
+
+// fn parse_assignment(assignment: &str) -> Result<(String, String), Box<dyn std::error::Error>> {
+//     let parts: Vec<&str> = assignment.splitn(2, '=').collect();
+//     if parts.len() != 2 {
+//         return Err(format!("Invalid assignment format: '{}'. Expected 'key=value'", assignment).into());
+//     }
+//     Ok((parts[0].to_string(), parts[1].to_string()))
+// }

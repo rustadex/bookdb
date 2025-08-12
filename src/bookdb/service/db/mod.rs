@@ -20,6 +20,6 @@ mod multibase;
 
 // Re-export the main Database struct and related types
 pub use core::Database;
-pub use utils::{ExportItem, BaseStats};
+pub use dbutils::{ExportItem, BaseStats};
 pub use workspace::WorkspaceMetadata;
 
