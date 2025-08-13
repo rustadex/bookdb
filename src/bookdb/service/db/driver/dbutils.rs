@@ -1,7 +1,7 @@
 // src/db/base.rs - Base-level operations (export/import/migration)
 
 use crate::error::Result;
-use crate::context::ResolvedContext;
+use crate::bookdb::service::ctx as context::ResolvedContext;
 use crate::sql;
 use std::collections::HashMap;
 use super::Database;

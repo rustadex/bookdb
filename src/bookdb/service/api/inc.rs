@@ -1,8 +1,8 @@
 // src/commands/inc.rs - Increment command implementation with tests added
 
 use crate::error::{Result, BookdbError};
-use crate::context::ResolvedContext;
-use crate::db::Database;
+use crate::bookdb::service::ctx as context::ResolvedContext;
+use crate::bookdb::service::db::Database;
 use crate::rdx::stderr::{Stderr, StderrConfig};
 
 /// Execute increment command: atomically increment a numeric variable
@@ -48,7 +48,7 @@ pub fn execute(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::context::ResolvedContext;
+    use crate::bookdb::service::ctx as context::ResolvedContext;
     use tempfile::NamedTempFile;
     
     fn create_test_db() -> (Database, NamedTempFile) {

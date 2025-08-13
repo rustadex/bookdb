@@ -9,7 +9,7 @@ use crate::error::{Result, BookdbError};
 use super::typesV1::{ContextChain, ResolvedContext, CursorState, DefaultResolver, Anchor, ChainMode};
 
 // TODO: This import needs to be fixed - find where Config is defined
-use crate::config::Config; 
+use crate::bookdb::app::sup::config::Config; 
 use serde::{Serialize, Deserialize};
 
 /// Context manager with stderr integration for rich user experience

@@ -2,7 +2,7 @@
 
 
 use crate::error::{Result, BookdbError};
-use crate::config::Config;
+use crate::bookdb::app::sup::config::Config;
 use super::typesV1::{CursorState, ContextChain};
 use serde::{Serialize, Deserialize};
 use std::fs;
@@ -77,7 +77,7 @@ impl CursorState {
 // LEGACY COMPATIBILITY (for existing simple cursor operations)
 // ============================================================================
 
-use crate::config::Paths;
+use crate::bookdb::app::sup::config::Paths;
 
 /// Legacy cursor reading (for backward compatibility)
 pub fn read_cursor(paths: &Paths) -> (Option<String>, Option<String>) {

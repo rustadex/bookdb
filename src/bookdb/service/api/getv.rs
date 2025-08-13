@@ -7,8 +7,8 @@
 // 4. Proper error handling for missing keys
 
 use crate::error::{Result, BookdbError};
-use crate::context::ResolvedContext;
-use crate::db::Database;
+use crate::bookdb::service::ctx as context::ResolvedContext;
+use crate::bookdb::service::db::Database;
 use crate::rdx::stderr::{Stderr, StderrConfig};
 
 /// Execute getv command: retrieve variable value
@@ -42,7 +42,7 @@ pub fn execute(key: &str, context: &ResolvedContext, database: &Database) ->  Re
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::context::{Anchor, ChainMode};
+    use crate::bookdb::service::ctx as context::{Anchor, ChainMode};
     use tempfile::TempDir;
     use std::path::PathBuf;
     

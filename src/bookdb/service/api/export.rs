@@ -7,8 +7,8 @@
 // 4. Rich error handling and user feedback
 
 use crate::error::{Result, BookdbError};
-use crate::context::ResolvedContext;
-use crate::db::Database;
+use crate::bookdb::service::ctx as context::ResolvedContext;
+use crate::bookdb::service::db::Database;
 use crate::rdx::stderr::{Stderr, StderrConfig};
 use std::path::Path;
 use std::fs;
@@ -125,7 +125,7 @@ pub fn export_as_key_value(variables: &HashMap<String, String>) -> Result<String
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::context::{Anchor, ChainMode};
+    use crate::bookdb::service::ctx as context::{Anchor, ChainMode};
     use tempfile::{TempDir, NamedTempFile};
     use std::collections::HashMap;
     

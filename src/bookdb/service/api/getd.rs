@@ -1,6 +1,6 @@
 use crate::error::{Result, BookdbError};
-use crate::context::ResolvedContext;
-use crate::db::Database;
+use crate::bookdb::service::ctx as context::ResolvedContext;
+use crate::bookdb::service::db::Database;
 use std::io::Write;
 
 pub fn execute(dik: &str, context: &ResolvedContext, db: &Database) ->  Result<(), E> {

@@ -7,8 +7,8 @@
 // 4. Progress tracking and rich feedback
 
 use crate::error::{Result, BookdbError};
-use crate::context::ResolvedContext;
-use crate::db::Database;
+use crate::bookdb::service::ctx as context::ResolvedContext;
+use crate::bookdb::service::db::Database;
 use crate::rdx::stderr::{Stderr, StderrConfig};
 use std::path::Path;
 use std::fs;
@@ -215,7 +215,7 @@ fn parse_key_value(content: &str) -> Result<HashMap<String, String>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::context::{Anchor, ChainMode};
+    use crate::bookdb::service::ctx as context::{Anchor, ChainMode};
     use tempfile::{TempDir, NamedTempFile};
     use std::io::Write;
     

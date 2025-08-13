@@ -1,7 +1,7 @@
 // src/db.rs - Complete database implementation with atomic operations added
 
 use crate::error::{Result, BookdbError};
-use crate::context::{ResolvedContext, Anchor};
+use crate::bookdb::service::ctx as context::{ResolvedContext, Anchor};
 use crate::rdx::stderr::{Stderr, StderrConfig};
 use rusqlite::{params, Connection, Transaction, Row};
 use std::path::{Path, PathBuf};
@@ -469,7 +469,7 @@ impl serde::Serialize for ExportItem {
 mod tests {
     use super::*;
     use tempfile::TempDir;
-    use crate::context::ResolvedContext;
+    use crate::bookdb::service::ctx as context::ResolvedContext;
     
     fn create_test_context() -> ResolvedContext {
         ResolvedContext {

@@ -1,8 +1,8 @@
 // src/commands/ls.rs - Updated with consistent BOOKDB_CONCEPTS.md terminology
 
 use crate::error::{Result, BookdbError};
-use crate::context::ResolvedContext;
-use crate::db::Database;
+use crate::bookdb::service::ctx as context::ResolvedContext;
+use crate::bookdb::service::db::Database;
 use crate::cli::LsTarget;
 use crate::rdx::stderr::{Stderr, StderrConfig};
 use std::collections::HashMap;
@@ -181,7 +181,7 @@ fn list_docs(context: &ResolvedContext, _database: &Database, logger: &mut Stder
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::context::{Anchor, ChainMode};
+    use crate::bookdb::service::ctx as context::{Anchor, ChainMode};
     use tempfile::TempDir;
     
     fn create_test_context() -> ResolvedContext {

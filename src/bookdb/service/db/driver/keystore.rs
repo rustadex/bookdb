@@ -1,7 +1,7 @@
 // src/db/keystore.rs - Keystore (variable) database operations
 
 use crate::error::{Result, BookdbError};
-use crate::context::ResolvedContext;
+use crate::bookdb::service::ctx as context::ResolvedContext;
 use crate::sql;
 use rusqlite::{params, Transaction};
 use std::collections::HashMap;

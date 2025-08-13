@@ -7,8 +7,8 @@
 // 4. Proper validation and error handling
 
 use crate::error::{Result, BookdbError};
-use crate::context::ResolvedContext;
-use crate::db::Database;
+use crate::bookdb::service::ctx as context::ResolvedContext;
+use crate::bookdb::service::db::Database;
 use crate::rdx::stderr::{Stderr, StderrConfig};
 
 /// Execute setv command: set variable key=value
@@ -62,7 +62,7 @@ pub fn execute(key_value: &str, context: &ResolvedContext, database: &mut Databa
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::context::{Anchor, ChainMode};
+    use crate::bookdb::service::ctx as context::{Anchor, ChainMode};
     use tempfile::TempDir;
     
     fn create_test_context() -> ResolvedContext {

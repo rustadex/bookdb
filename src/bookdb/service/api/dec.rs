@@ -2,7 +2,7 @@
 
 use crate::error::{Result, BookdbError};
 use crate::ctx::ResolvedContext;
-use crate::db::Database;
+use crate::bookdb::service::db::Database;
 use stderr::{Stderr, StderrConfig};
 
 /// Execute decrement command: atomically decrement a numeric variable
@@ -48,7 +48,7 @@ pub fn execute(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::context::ResolvedContext;
+    use crate::bookdb::service::ctx as context::ResolvedContext;
     use tempfile::NamedTempFile;
     
     fn create_test_db() -> (Database, NamedTempFile) {

@@ -1,6 +1,6 @@
 use crate::error::Result;
-use crate::context::ResolvedContext;
-use crate::db::Database;
+use crate::bookdb::service::ctx as context::ResolvedContext;
+use crate::bookdb::service::db::Database;
 
 pub fn execute(dry_run: bool, context: &ResolvedContext, db: &Database) ->  Result<(), E> {
     let chunks = db.stream_doc_chunks(context)?;

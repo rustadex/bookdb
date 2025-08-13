@@ -7,7 +7,7 @@ use stderr::{Stderr, StderrConfig};
 //use crate::admin::install::{InstallationManager, require_installation_or_install};
 
 use crate::error::{Result, BookdbError};
-use crate::db::Database;
+use crate::bookdb::service::db::Database;
 use crate::ctx::{ContextManager, parse_context_chain};
 
 
