@@ -1,7 +1,3 @@
-# DEFECTS
-
-This document records outstanding module and `include!`/`mod` misconfigurations and suggests a step‑by‑step plan for remediation.
-
 ## 1. Missing CLI module at crate root
 - **Problem**: `src/main.rs` declares a `cli` module, but no corresponding `src/cli.rs` or `src/cli/mod.rs` exists, leading to compilation failures.
 - **Plan**:
@@ -49,6 +45,3 @@ This document records outstanding module and `include!`/`mod` misconfigurations 
 - **Plan**:
   - Rename `___build.rs` to `build.rs` or reference it via `build = "___build.rs"` in `Cargo.toml`.
   - Verify `include_sql_mod!()` reads the generated `OUT_DIR/sql_consts.rs` during builds.
-
----
-These issues prevent successful compilation and should be addressed before further development.

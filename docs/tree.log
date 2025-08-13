@@ -1,125 +1,147 @@
 .
-├── build.rs
+├── ___build.rs
 ├── Cargo.lock
 ├── Cargo.toml
 ├── docs
-│   ├── logo.log
-│   └── tree.log
+│   ├── examples.log
+│   ├── logo.log
+│   ├── sql.log
+│   └── tree.log
+├── examples
+│   ├── phase_17_tests.rs
+│   ├── phase1_tests.rs
+│   ├── sanity.rs
+│   ├── stderr_test.rs
+│   ├── stderr_usage.rs
+│   └── v3_validator_tests.rs
 ├── README.md
 ├── src
-│   ├── bookdb
-│   │   ├── app
-│   │   │   ├── admin
-│   │   │   │   └── install.rs
-│   │   │   ├── ctrl
-│   │   │   │   ├── cli.rs
-│   │   │   │   ├── dispatch-legacy.rs
-│   │   │   │   ├── dispatch.rs
-│   │   │   │   └── handlers.rs
-│   │   │   ├── mod.rs
-│   │   │   └── sup
-│   │   │       ├── config.rs
-│   │   │       └── error.rs
-│   │   ├── mod.rs
-│   │   ├── service
-│   │   │   ├── api
-│   │   │   │   ├── dec.rs
-│   │   │   │   ├── export.rs
-│   │   │   │   ├── getd.rs
-│   │   │   │   ├── getv.rs
-│   │   │   │   ├── import.rs
-│   │   │   │   ├── inc.rs
-│   │   │   │   ├── ls.rs
-│   │   │   │   ├── migrate.rs
-│   │   │   │   ├── mod.rs
-│   │   │   │   ├── setd.rs
-│   │   │   │   ├── setv.rs
-│   │   │   │   └── use.rs
-│   │   │   ├── ctx
-│   │   │   │   ├── _bak_models.rs
-│   │   │   │   ├── context_manager.rs
-│   │   │   │   ├── context.rs
-│   │   │   │   ├── cursor.rs
-│   │   │   │   ├── models.rs
-│   │   │   │   └── mod.rs
-│   │   │   ├── db
-│   │   │   │   ├── data
-│   │   │   │   │   ├── sqlv1
-│   │   │   │   │   │   ├── backup_db.sql
-│   │   │   │   │   │   ├── get_doc_chunk.sql
-│   │   │   │   │   │   ├── get_doc_id.sql
-│   │   │   │   │   │   ├── get_doc_segment.sql
-│   │   │   │   │   │   ├── get_docstore_id.sql
-│   │   │   │   │   │   ├── get_project_id.sql
-│   │   │   │   │   │   ├── get_var.sql
-│   │   │   │   │   │   ├── get_varstore_id.sql
-│   │   │   │   │   │   ├── list_diks.sql
-│   │   │   │   │   │   ├── list_docstores.sql
-│   │   │   │   │   │   ├── list_docs_v2.sql
-│   │   │   │   │   │   ├── list_keys.sql
-│   │   │   │   │   │   ├── list_projects.sql
-│   │   │   │   │   │   ├── list_segments.sql
-│   │   │   │   │   │   ├── list_varstores.sql
-│   │   │   │   │   │   ├── resolve_doc_context.sql
-│   │   │   │   │   │   ├── resolve_doc_id.sql
-│   │   │   │   │   │   ├── resolve_docstore_id.sql
-│   │   │   │   │   │   ├── resolve_project_id.sql
-│   │   │   │   │   │   ├── resolve_varstore_id.sql
-│   │   │   │   │   │   ├── upsert_doc_chunk.sql
-│   │   │   │   │   │   ├── upsert_doc_segment.sql
-│   │   │   │   │   │   ├── upsert_var.sql
-│   │   │   │   │   │   ├── V1__create_tables.sql
-│   │   │   │   │   │   └── V2__create_docs.sql
-│   │   │   │   │   └── sqlv2
-│   │   │   │   │       ├── backup_db.sql
-│   │   │   │   │       ├── count_documents.sql
-│   │   │   │   │       ├── count_variables.sql
-│   │   │   │   │       ├── create_doc_store.sql
-│   │   │   │   │       ├── create_keyval_ns.sql
-│   │   │   │   │       ├── create_project.sql
-│   │   │   │   │       ├── delete_document.sql
-│   │   │   │   │       ├── delete_variable.sql
-│   │   │   │   │       ├── ensure_doc_store.sql
-│   │   │   │   │       ├── export_documents.sql
-│   │   │   │   │       ├── export_variables.sql
-│   │   │   │   │       ├── get_doc_segement.sql
-│   │   │   │   │       ├── get_doc_store.sql
-│   │   │   │   │       ├── get_document.sql
-│   │   │   │   │       ├── get_variables.sql
-│   │   │   │   │       ├── list_documents.sql
-│   │   │   │   │       ├── list_keystores.sql
-│   │   │   │   │       ├── list_projects.sql
-│   │   │   │   │       ├── list_variables.sql
-│   │   │   │   │       ├── list_workspaces.sql
-│   │   │   │   │       ├── resolve_doc_store_id.sql
-│   │   │   │   │       ├── set_doc_segment.sql
-│   │   │   │   │       ├── set_document.sql
-│   │   │   │   │       ├── set_variable.sql
-│   │   │   │   │       ├── _todo__list_doc_stores.sql
-│   │   │   │   │       └── V2__create_docs.sql
-│   │   │   │   ├── driver
-│   │   │   │   │   ├── _bak_sql-const.rs
-│   │   │   │   │   ├── _bak_sql-v1.rs
-│   │   │   │   │   ├── core.rs
-│   │   │   │   │   ├── dbutils.rs
-│   │   │   │   │   ├── docstore.rs
-│   │   │   │   │   ├── keystore.rs
-│   │   │   │   │   ├── mod.rs
-│   │   │   │   │   ├── multibase.rs
-│   │   │   │   │   ├── projects.rs
-│   │   │   │   │   └── workspace.rs
-│   │   │   │   ├── mod.rs
-│   │   │   │   └── sql.rs
-│   │   │   └── mod.rs
-│   │   └── utils
-│   │       ├── extra.rs
-│   │       ├── info.rs
-│   │       ├── macros.rs
-│   │       └── mod.rs
-│   └── main.rs
+│   ├── bookdb
+│   │   ├── app
+│   │   │   ├── admin
+│   │   │   │   └── install.rs
+│   │   │   ├── ctrl
+│   │   │   │   ├── cli.rs
+│   │   │   │   ├── dispatch-legacy.rs
+│   │   │   │   ├── dispatch.rs
+│   │   │   │   └── handlers.rs
+│   │   │   ├── mod.rs
+│   │   │   └── sup
+│   │   │       ├── config.rs
+│   │   │       └── error.rs
+│   │   ├── mod.rs
+│   │   ├── oxidize
+│   │   │   ├── config.rs
+│   │   │   ├── environment.rs
+│   │   │   ├── flag.rs
+│   │   │   └── mod.rs
+│   │   ├── service
+│   │   │   ├── api
+│   │   │   │   ├── dec.rs
+│   │   │   │   ├── export.rs
+│   │   │   │   ├── getd.rs
+│   │   │   │   ├── getv.rs
+│   │   │   │   ├── import.rs
+│   │   │   │   ├── inc.rs
+│   │   │   │   ├── ls.rs
+│   │   │   │   ├── migrate.rs
+│   │   │   │   ├── mod.rs
+│   │   │   │   ├── reset.rs
+│   │   │   │   ├── setd.rs
+│   │   │   │   ├── setv.rs
+│   │   │   │   ├── stats.rs
+│   │   │   │   ├── use.rs
+│   │   │   │   └── validate.rs
+│   │   │   ├── ctx
+│   │   │   │   ├── context_manager.rs
+│   │   │   │   ├── context.rs
+│   │   │   │   ├── cursor.rs
+│   │   │   │   ├── mod.rs
+│   │   │   │   ├── resolver.rs
+│   │   │   │   └── types
+│   │   │   │       ├── _dep_models.rs
+│   │   │   │       ├── mod.rs
+│   │   │   │       ├── segment.rs
+│   │   │   │       ├── typesV1.rs
+│   │   │   │       └── typesV3.rs
+│   │   │   ├── db
+│   │   │   │   ├── data
+│   │   │   │   │   ├── sqlv1
+│   │   │   │   │   │   ├── backup_db.sql
+│   │   │   │   │   │   ├── get_doc_chunk.sql
+│   │   │   │   │   │   ├── get_doc_id.sql
+│   │   │   │   │   │   ├── get_doc_segment.sql
+│   │   │   │   │   │   ├── get_docstore_id.sql
+│   │   │   │   │   │   ├── get_project_id.sql
+│   │   │   │   │   │   ├── get_var.sql
+│   │   │   │   │   │   ├── get_varstore_id.sql
+│   │   │   │   │   │   ├── list_diks.sql
+│   │   │   │   │   │   ├── list_docstores.sql
+│   │   │   │   │   │   ├── list_docs_v2.sql
+│   │   │   │   │   │   ├── list_keys.sql
+│   │   │   │   │   │   ├── list_projects.sql
+│   │   │   │   │   │   ├── list_segments.sql
+│   │   │   │   │   │   ├── list_varstores.sql
+│   │   │   │   │   │   ├── resolve_doc_context.sql
+│   │   │   │   │   │   ├── resolve_doc_id.sql
+│   │   │   │   │   │   ├── resolve_docstore_id.sql
+│   │   │   │   │   │   ├── resolve_project_id.sql
+│   │   │   │   │   │   ├── resolve_varstore_id.sql
+│   │   │   │   │   │   ├── upsert_doc_chunk.sql
+│   │   │   │   │   │   ├── upsert_doc_segment.sql
+│   │   │   │   │   │   ├── upsert_var.sql
+│   │   │   │   │   │   ├── V1__create_tables.sql
+│   │   │   │   │   │   └── V2__create_docs.sql
+│   │   │   │   │   └── sqlv2
+│   │   │   │   │       ├── backup_db.sql
+│   │   │   │   │       ├── count_documents.sql
+│   │   │   │   │       ├── count_variables.sql
+│   │   │   │   │       ├── create_doc_store.sql
+│   │   │   │   │       ├── create_keyval_ns.sql
+│   │   │   │   │       ├── create_project.sql
+│   │   │   │   │       ├── delete_document.sql
+│   │   │   │   │       ├── delete_variable.sql
+│   │   │   │   │       ├── ensure_doc_store.sql
+│   │   │   │   │       ├── export_documents.sql
+│   │   │   │   │       ├── export_variables.sql
+│   │   │   │   │       ├── get_doc_segement.sql
+│   │   │   │   │       ├── get_doc_store.sql
+│   │   │   │   │       ├── get_document.sql
+│   │   │   │   │       ├── get_variables.sql
+│   │   │   │   │       ├── list_documents.sql
+│   │   │   │   │       ├── list_keystores.sql
+│   │   │   │   │       ├── list_projects.sql
+│   │   │   │   │       ├── list_variables.sql
+│   │   │   │   │       ├── list_workspaces.sql
+│   │   │   │   │       ├── resolve_doc_store_id.sql
+│   │   │   │   │       ├── set_doc_segment.sql
+│   │   │   │   │       ├── set_document.sql
+│   │   │   │   │       ├── set_variable.sql
+│   │   │   │   │       ├── _todo__list_doc_stores.sql
+│   │   │   │   │       └── V2__create_docs.sql
+│   │   │   │   ├── driver
+│   │   │   │   │   ├── _bak_sql-const.rs
+│   │   │   │   │   ├── _bak_sql-v1.rs
+│   │   │   │   │   ├── core.rs
+│   │   │   │   │   ├── dbutils.rs
+│   │   │   │   │   ├── docstore.rs
+│   │   │   │   │   ├── keystore.rs
+│   │   │   │   │   ├── mod.rs
+│   │   │   │   │   ├── multibase.rs
+│   │   │   │   │   ├── projects.rs
+│   │   │   │   │   └── workspace.rs
+│   │   │   │   ├── mod.rs
+│   │   │   │   └── sql.rs
+│   │   │   └── mod.rs
+│   │   └── utils
+│   │       ├── extra.rs
+│   │       ├── info.rs
+│   │       ├── macros.rs
+│   │       ├── mod.rs
+│   │       └── validator
+│   │           ├── valV1.rs
+│   │           └── valV3.rs
+│   └── main.rs
 └── tests
-    ├── basics.rs
-    └── integration
-        └── phase1_tests.rs
 
-19 directories, 104 files
+22 directories, 123 files
