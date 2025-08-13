@@ -469,7 +469,7 @@ impl serde::Serialize for ExportItem {
 mod tests {
     use super::*;
     use tempfile::TempDir;
-    use crate::bookdb::service::ctx as context::ResolvedContext;
+    use crate::bookdb::service::ctx::ResolvedContext;
     
     fn create_test_context() -> ResolvedContext {
         ResolvedContext {

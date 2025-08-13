@@ -1,7 +1,7 @@
 // src/db/docstore.rs - Document store database operations
 
 use crate::error::Result;
-use crate::bookdb::service::ctx as context::ResolvedContext;
+use crate::bookdb::service::ctx::ResolvedContext;
 use crate::sql;
 use rusqlite::{params, Transaction};
 use super::Database;

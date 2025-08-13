@@ -7,7 +7,7 @@
 // 4. Proper error handling for missing keys
 
 use crate::error::{Result, BookdbError};
-use crate::bookdb::service::ctx as context::ResolvedContext;
+use crate::bookdb::service::ctx::ResolvedContext;
 use crate::bookdb::service::db::Database;
 use crate::rdx::stderr::{Stderr, StderrConfig};
 

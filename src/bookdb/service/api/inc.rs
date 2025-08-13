@@ -1,7 +1,7 @@
 // src/commands/inc.rs - Increment command implementation with tests added
 
 use crate::error::{Result, BookdbError};
-use crate::bookdb::service::ctx as context::ResolvedContext;
+use crate::bookdb::service::ctx::ResolvedContext;
 use crate::bookdb::service::db::Database;
 use crate::rdx::stderr::{Stderr, StderrConfig};
 
@@ -48,7 +48,7 @@ pub fn execute(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::bookdb::service::ctx as context::ResolvedContext;
+    use crate::bookdb::service::ctx::ResolvedContext;
     use tempfile::NamedTempFile;
     
     fn create_test_db() -> (Database, NamedTempFile) {

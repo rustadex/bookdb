@@ -1,54 +1,49 @@
-
-// must load first due to build.rs
+// Load order
 pub mod utils;
-pub mod oxidize; 
+pub mod oxidize;
 pub mod service;
-pub mod app;  
+pub mod app;
 
-// --------------------------------------------------------------------
-// Phase 1.7 upgrade
-// Feature-conditional re-exports for easy access
+// ---------------- Feature-conditional re-exports ----------------
+
+// Validator alias remains in utils::validator::{valV1,valV3}
 #[cfg(feature = "context-chain-v1")]
 pub use utils::validator::valV1 as context_validator;
 
 #[cfg(feature = "context-chain-v3")]
 pub use utils::validator::valV3 as context_validator;
 
-
-// Version-specific convenience re-exports
+// Context type surfaces (point at actual module paths)
 #[cfg(feature = "context-chain-v1")]
 pub mod context {
-    pub use crate::service::ctx::typesV1::*;
-}
+    pub use crate::service::ctx::types::typesV1::*;
+};
 
 #[cfg(feature = "context-chain-v3")]
 pub mod context {
-    pub use crate::service::ctx::typesV3::*;
-    pub use crate::service::ctx::types::segments::*;
-}
-
-
+    pub use crate::service::ctx::types::typesV3::*;
+    pub use crate::service::ctx::types::segment::*; // NOTE: singular 'segment.rs'
+};
 
 // Always available
-pub use service::ctx::ContextManager;
-// --------------------------------------------------------------------
+pub use crate::service::ctx::context_manager::ContextManager;
 
-// FIXED: Added missing service module declaration
-pub mod service;
+// ---------------- Convenience re-exports ----------------
 
 pub mod info {
-  use crate::utils::info::*;
-}
-
-// TODO: Re-enable when app module is ready
-
-pub use app::sup::error; 
-pub use app::sup::error::{BookdbError, Result};
-
-pub use app::ctrl::{ dispatch as run };
-pub use app::install::{ 
-  InstallGuard, 
-  InstallationManager, 
-  require_installation_or_install 
+    pub use crate::utils::info::*; // re-export helpers
 };
-pub use app::sup::error::{BookdbError, Result};
+
+// Error/result
+pub use crate::app::sup::error::{BookdbError, Result};
+
+// CLI entry
+pub use crate::app::ctrl::dispatch;
+pub use crate::app::ctrl::dispatch::run;
+
+// Install guards/managers (file lives at app/admin/install.rs)
+pub use crate::app::admin::install::{
+    InstallGuard,
+    InstallationManager,
+    require_installation_or_install
+};

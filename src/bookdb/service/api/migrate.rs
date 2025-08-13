@@ -1,5 +1,5 @@
 use crate::error::Result;
-use crate::bookdb::service::ctx as context::ResolvedContext;
+use crate::bookdb::service::ctx::ResolvedContext;
 use crate::bookdb::service::db::Database;
 
 pub fn execute(dry_run: bool, context: &ResolvedContext, db: &Database) ->  Result<(), E> {

@@ -18,3 +18,4 @@ pub use core::Database;
 pub use dbutils::{ExportItem, BaseStats};
 pub use workspace::WorkspaceMetadata;
 
+pub use driver::{core, dbutils, docstore, keystore, multibase, project, workspace};

@@ -48,7 +48,7 @@ pub fn execute(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::bookdb::service::ctx as context::ResolvedContext;
+    use crate::bookdb::service::ctx::ResolvedContext;
     use tempfile::NamedTempFile;
     
     fn create_test_db() -> (Database, NamedTempFile) {
