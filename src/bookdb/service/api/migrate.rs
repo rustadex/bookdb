@@ -2,7 +2,7 @@ use crate::error::Result;
 use crate::context::ResolvedContext;
 use crate::db::Database;
 
-pub fn execute(dry_run: bool, context: &ResolvedContext, db: &Database) -> Result<()> {
+pub fn execute(dry_run: bool, context: &ResolvedContext, db: &Database) ->  Result<(), E> {
     let chunks = db.stream_doc_chunks(context)?;
     
     if chunks.is_empty() {

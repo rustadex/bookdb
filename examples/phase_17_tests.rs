@@ -34,7 +34,7 @@ mod phase_17_integration_tests {
     // ========================================================================
 
     #[test]
-    fn test_complete_v3_variable_workflow() -> Result<()> {
+    fn test_complete_v3_variable_workflow() ->  Result<(), E> {
         let (database, mut context_manager, _temp) = create_phase_17_test_env();
         
         // Step 1: Parse V3 context chain
@@ -69,7 +69,7 @@ mod phase_17_integration_tests {
     }
 
     #[test]
-    fn test_complete_v3_document_workflow() -> Result<()> {
+    fn test_complete_v3_document_workflow() ->  Result<(), E> {
         let (database, mut context_manager, _temp) = create_phase_17_test_env();
         
         // Step 1: Parse V3 document context
@@ -103,7 +103,7 @@ mod phase_17_integration_tests {
 
     #[cfg(feature = "context-chain-v3")]
     #[test]
-    fn test_v3_feature_flag_active() -> Result<()> {
+    fn test_v3_feature_flag_active() ->  Result<(), E> {
         // Test that V3 validator is available when v3 feature is enabled
         let result = validate_and_create_v3("@proj.workspace.var.keystore", "home")?;
         
@@ -123,7 +123,7 @@ mod phase_17_integration_tests {
 
     #[cfg(feature = "dev-both-versions")]
     #[test]
-    fn test_both_versions_available() -> Result<()> {
+    fn test_both_versions_available() ->  Result<(), E> {
         // Test that both V1 and V3 are available in dev mode
         use bookdb::v1;
         use bookdb::v3;
@@ -144,7 +144,7 @@ mod phase_17_integration_tests {
     // ========================================================================
 
     #[test]
-    fn test_v1_to_v3_conversion() -> Result<()> {
+    fn test_v1_to_v3_conversion() ->  Result<(), E> {
         // Test conversion from V1 ContextChain to V3 types
         // TODO: Implement when conversion layer is ready
         
@@ -170,7 +170,7 @@ mod phase_17_integration_tests {
     }
 
     #[test]
-    fn test_v3_to_v1_conversion() -> Result<()> {
+    fn test_v3_to_v1_conversion() ->  Result<(), E> {
         // Test conversion from V3 types back to V1 ContextChain
         let v3_result = validate_and_create_v3("@proj.workspace.var.keystore", "home")?;
         
@@ -198,7 +198,7 @@ mod phase_17_integration_tests {
     // ========================================================================
 
     #[test]
-    fn test_v3_with_database_operations() -> Result<()> {
+    fn test_v3_with_database_operations() ->  Result<(), E> {
         let (mut database, _context_manager, _temp) = create_phase_17_test_env();
         
         // Parse V3 context
@@ -226,7 +226,7 @@ mod phase_17_integration_tests {
     }
 
     #[test]
-    fn test_v3_context_resolution() -> Result<()> {
+    fn test_v3_context_resolution() ->  Result<(), E> {
         // Test that V3 context chains resolve correctly
         let v3_result = validate_and_create_v3("@base@proj.workspace.var.keystore", "home")?;
         
@@ -289,7 +289,7 @@ mod phase_17_integration_tests {
     // ========================================================================
 
     #[test]
-    fn test_complex_fqcc_scenarios() -> Result<()> {
+    fn test_complex_fqcc_scenarios() ->  Result<(), E> {
         let test_cases = vec![
             ("@prod@webapp.config.var.database_url", "Should handle production webapp config"),
             ("@dev@api.secrets.var.jwt_key", "Should handle dev API secrets"),
@@ -319,7 +319,7 @@ mod phase_17_integration_tests {
     }
 
     #[test]
-    fn test_cdcc_fallback_scenarios() -> Result<()> {
+    fn test_cdcc_fallback_scenarios() ->  Result<(), E> {
         let test_cases = vec![
             ("@webapp.config.var.database_url", "fallback_base"),
             ("%api.secrets.var.jwt_key", "prod"),
@@ -386,7 +386,7 @@ mod phase_17_integration_tests {
     // ========================================================================
 
     #[test]
-    fn test_segment_system_readiness() -> Result<()> {
+    fn test_segment_system_readiness() ->  Result<(), E> {
         // Test that V3 types are ready for segment implementation
         let result = validate_and_create_v3("@proj.workspace.var.keystore", "home")?;
         
@@ -412,7 +412,7 @@ mod phase_17_integration_tests {
     // ========================================================================
 
     #[test]
-    fn test_future_extensibility() -> Result<()> {
+    fn test_future_extensibility() ->  Result<(), E> {
         // Test that V3 design supports future extensions
         let result = validate_and_create_v3("@proj.workspace.var.keystore", "home")?;
         
@@ -438,7 +438,7 @@ mod phase_17_integration_tests {
     // ========================================================================
 
     #[test]
-    fn test_existing_codebase_compatibility() -> Result<()> {
+    fn test_existing_codebase_compatibility() ->  Result<(), E> {
         // Test that V3 types can work with existing function signatures
         let result = validate_and_create_v3("@proj.workspace.var.keystore", "home")?;
         

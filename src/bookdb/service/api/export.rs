@@ -21,8 +21,8 @@ pub fn execute(
     _filters: (Option<&str>, Option<&str>, Option<&str>, Option<&str>, Option<&str>, Option<&str>),
     context: &ResolvedContext,
     database: &Database,
-) -> Result<()> {
-    let mut logger = Stderr::new(&StderrConfig::from_env());
+) ->  Result<(), E> {
+    let mut logger = Stderr::new();
     logger.trace_fn("export", &format!("exporting from context: {} to file: {:?}", context, file_path));
     
     // Get all variables from the context
@@ -73,7 +73,7 @@ impl ExportFormat {
 }
 
 /// Determine export format from file extension or explicit format
-fn determine_format(file_path: &Path, explicit_format: Option<&str>) -> Result<ExportFormat> {
+pub fn determine_format(file_path: &Path, explicit_format: Option<&str>) -> Result<ExportFormat> {
     if let Some(format) = explicit_format {
         match format.to_lowercase().as_str() {
             "json" => Ok(ExportFormat::Json),
@@ -95,13 +95,13 @@ fn determine_format(file_path: &Path, explicit_format: Option<&str>) -> Result<E
 }
 
 /// Export variables as JSON format
-fn export_as_json(variables: &HashMap<String, String>) -> Result<String> {
+pub fn export_as_json(variables: &HashMap<String, String>) -> Result<String> {
     serde_json::to_string_pretty(variables)
         .map_err(|e| BookdbError::Io(format!("JSON serialization failed: {}", e)))
 }
 
 /// Export variables as key-value format
-fn export_as_key_value(variables: &HashMap<String, String>) -> Result<String> {
+pub fn export_as_key_value(variables: &HashMap<String, String>) -> Result<String> {
     let mut lines = Vec::new();
     
     // Sort keys for consistent output
@@ -156,7 +156,7 @@ mod tests {
     }
     
     #[test]
-    fn test_export_json() -> Result<()> {
+    fn test_export_json() ->  Result<(), E> {
         let (db, _temp) = create_test_db_with_data();
         let context = create_test_context();
         
@@ -179,7 +179,7 @@ mod tests {
     }
     
     #[test]
-    fn test_export_key_value() -> Result<()> {
+    fn test_export_key_value() ->  Result<(), E> {
         let (db, _temp) = create_test_db_with_data();
         let context = create_test_context();
         
@@ -202,7 +202,7 @@ mod tests {
     }
     
     #[test]
-    fn test_format_inference() -> Result<()> {
+    fn test_format_inference() ->  Result<(), E> {
         // Test JSON inference from .json extension
         let json_format = determine_format(Path::new("test.json"), None)?;
         assert!(matches!(json_format, ExportFormat::Json));
@@ -219,7 +219,7 @@ mod tests {
     }
     
     #[test]
-    fn test_export_empty_context() -> Result<()> {
+    fn test_export_empty_context() ->  Result<(), E> {
         let temp_dir = TempDir::new().unwrap();
         let db_path = temp_dir.path().join("empty.db");
         let db = Database::create_or_open(&db_path).unwrap();
@@ -242,7 +242,7 @@ mod tests {
     }
     
     #[test]
-    fn test_special_characters_in_values() -> Result<()> {
+    fn test_special_characters_in_values() ->  Result<(), E> {
         let temp_dir = TempDir::new().unwrap();
         let db_path = temp_dir.path().join("test.db");
         let mut db = Database::create_or_open(&db_path).unwrap();

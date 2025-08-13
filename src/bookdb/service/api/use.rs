@@ -16,8 +16,8 @@ pub fn execute(
     context_str: &str,
     current_context: &ResolvedContext,
     _database: &Database,
-) -> Result<()> {
-    let mut logger = Stderr::new(&StderrConfig::from_env());
+) ->  Result<(), E> {
+    let mut logger = Stderr::new();
     logger.trace_fn("use", &format!("changing context from {} to {}", current_context, context_str));
     
     // Parse the new context chain
@@ -69,7 +69,7 @@ mod tests {
     }
     
     #[test]
-    fn test_use_valid_context() -> Result<()> {
+    fn test_use_valid_context() ->  Result<(), E> {
         let (db, _temp) = create_test_db();
         let current_context = create_test_context();
         

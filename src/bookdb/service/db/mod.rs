@@ -1,10 +1,9 @@
 // src/db.rs - Database module re-export
 
 
-// not loading ./data because its picked up by build.rs
-
 pub mod driver;
-
+pub mod data; // Contains the sql folders
+pub mod sql;
 
 
 mod core;
@@ -19,7 +18,7 @@ mod multibase;
 // sql constants are now dynamically generated from build.rs
 
 // Re-export the main Database struct and related types
-pub use core::Database;
+pub use driver::Database;
 pub use dbutils::{ExportItem, BaseStats};
 pub use workspace::WorkspaceMetadata;
 

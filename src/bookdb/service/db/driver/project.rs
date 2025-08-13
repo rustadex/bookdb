@@ -24,7 +24,7 @@ impl Database {
     }
     
     /// Ensure a project exists in the database
-    pub fn ensure_project_exists(&self, project: &str) -> Result<()> {
+    pub fn ensure_project_exists(&self, project: &str) ->  Result<(), E> {
         self.logger.trace_fn("database", &format!("ensuring project exists: {}", project));
         
         self.connection.execute(sql::CREATE_PROJECT, params![project])?;
@@ -50,7 +50,7 @@ impl Database {
     }
     
     /// Create a new project
-    pub fn create_project(&self, name: &str) -> Result<()> {
+    pub fn create_project(&self, name: &str) ->  Result<(), E> {
         self.logger.trace_fn("database", &format!("creating project: {}", name));
         
         self.connection.execute(sql::CREATE_PROJECT, params![name])?;
@@ -58,7 +58,7 @@ impl Database {
     }
     
     /// Delete a project (stub - not implemented)
-    pub fn delete_project(&self, _name: &str) -> Result<()> {
+    pub fn delete_project(&self, _name: &str) ->  Result<(), E> {
         // TODO: Implement project deletion with cascade
         todo!("Project deletion not yet implemented")
     }

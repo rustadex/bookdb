@@ -20,13 +20,13 @@ pub struct InstallGuard {
 
 impl InstallGuard {
     pub fn new(config: Config) -> Self {
-        let logger = Stderr::new(&StderrConfig::from_env());
+        let logger = Stderr::new();
         Self { config, logger }
     }
     
     /// CRITICAL: Call this before any BookDB operations
     /// Blocks execution if installation is incomplete
-    pub fn require_installation(&mut self) -> Result<()> {
+    pub fn require_installation(&mut self) ->  Result<(), E> {
         self.logger.trace_fn("installation_guard", "checking installation status");
         
         // Check if home base exists and is properly initialized
@@ -59,7 +59,7 @@ impl InstallGuard {
     }
     
     /// Check if database has proper installation metadata
-    fn check_installation_meta(&mut self, db_path: &Path) -> Result<bool> {
+    fn check_installation_meta(&mut self, db_path: &Path) -> Result<bool, E> {
         use rusqlite::Connection;
         
         let conn = Connection::open(db_path)?;
@@ -84,7 +84,7 @@ impl InstallGuard {
     }
     
     /// Show user-friendly installation guidance
-    fn show_installation_required(&mut self) -> Result<()> {
+    fn show_installation_required(&mut self) ->  Result<(), E> {
         self.logger.banner("BookDB Not Installed", '!')?;
         self.logger.error("BookDB has not been installed on this system.");
         self.logger.info("");
@@ -103,7 +103,7 @@ impl InstallGuard {
     }
     
     /// Show guidance for incomplete installation
-    fn show_installation_incomplete(&mut self) -> Result<()> {
+    fn show_installation_incomplete(&mut self) ->  Result<(), E> {
         self.logger.banner("Incomplete Installation", '!')?;
         self.logger.warn("BookDB installation was started but not completed properly.");
         self.logger.info("");
@@ -124,12 +124,12 @@ pub struct InstallationManager {
 
 impl InstallationManager {
     pub fn new(config: Config) -> Self {
-        let logger = Stderr::new(&StderrConfig::from_env());
+        let logger = Stderr::new();
         Self { config, logger }
     }
     
     /// Execute the installation process
-    pub fn install(&mut self) -> Result<()> {
+    pub fn install(&mut self) ->  Result<(), E> {
         self.logger.banner("BookDB Installation", '=')?;
         
         // Check if already installed
@@ -171,7 +171,7 @@ impl InstallationManager {
     }
     
     /// Check if BookDB is already properly installed
-    fn is_already_installed(&mut self) -> Result<bool> {
+    fn is_already_installed(&mut self) -> Result<bool, E> {
         let home_db_path = self.config.get_base_path("home");
         
         if !home_db_path.exists() {
@@ -186,7 +186,7 @@ impl InstallationManager {
     }
     
     /// Perform the actual installation
-    fn perform_installation(&mut self) -> Result<()> {
+    fn perform_installation(&mut self) ->  Result<(), E> {
         self.logger.trace_fn("installation", "starting installation process");
         
         // Step 1: Create directory structure
@@ -207,7 +207,7 @@ impl InstallationManager {
     }
     
     /// Create necessary directory structure
-    fn create_directory_structure(&mut self) -> Result<()> {
+    fn create_directory_structure(&mut self) ->  Result<(), E> {
         self.logger.trace_fn("installation", "creating directory structure");
         
         let data_dir = self.config.xdg.data_dir();
@@ -226,7 +226,7 @@ impl InstallationManager {
     }
     
     /// Create the invincible superchain: ROOT.GLOBAL.VAR.MAIN
-    fn create_invincible_superchain(&mut self, database: &mut Database) -> Result<()> {
+    fn create_invincible_superchain(&mut self, database: &mut Database) ->  Result<(), E> {
         self.logger.trace_fn("installation", "creating invincible superchain");
         
         // Create the ROOT.GLOBAL.VAR.MAIN context
@@ -247,7 +247,7 @@ impl InstallationManager {
     }
     
     /// Mark installation as complete in meta table
-    fn mark_installation_complete(&mut self, database: &mut Database) -> Result<()> {
+    fn mark_installation_complete(&mut self, database: &mut Database) ->  Result<(), E> {
         self.logger.trace_fn("installation", "marking installation complete");
         
         // Create meta table if not exists
@@ -281,7 +281,7 @@ impl InstallationManager {
 }
 
 /// Integration for main.rs to check installation before any operations
-pub fn require_installation_or_install(config: &Config, is_install_command: bool) -> Result<()> {
+pub fn require_installation_or_install(config: &Config, is_install_command: bool) ->  Result<(), E> {
     if is_install_command {
         // Allow install command to proceed
         return Ok(());
@@ -314,7 +314,7 @@ mod tests {
     }
     
     #[test]
-    fn test_installation_process() -> Result<()> {
+    fn test_installation_process() ->  Result<(), E> {
         let (config, _temp) = create_test_config();
         let mut manager = InstallationManager::new(config.clone());
         
@@ -329,7 +329,7 @@ mod tests {
     }
     
     #[test]
-    fn test_invincible_superchain_creation() -> Result<()> {
+    fn test_invincible_superchain_creation() ->  Result<(), E> {
         let (config, _temp) = create_test_config();
         let home_db_path = config.get_base_path("home");
         

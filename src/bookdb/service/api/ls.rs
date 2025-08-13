@@ -8,8 +8,8 @@ use crate::rdx::stderr::{Stderr, StderrConfig};
 use std::collections::HashMap;
 
 /// Execute ls command: list items of specified type
-pub fn execute(target: LsTarget, context: &ResolvedContext, database: &Database) -> Result<()> {
-    let mut logger = Stderr::new(&StderrConfig::from_env());
+pub fn execute(target: LsTarget, context: &ResolvedContext, database: &Database) ->  Result<(), E> {
+    let mut logger = Stderr::new();
     logger.trace_fn("ls", &format!("listing {:?} in context: {}", target, context));
     
     match target {
@@ -22,7 +22,7 @@ pub fn execute(target: LsTarget, context: &ResolvedContext, database: &Database)
 }
 
 /// List all variables/keys in current context
-fn list_keys(context: &ResolvedContext, database: &Database, logger: &mut Stderr) -> Result<()> {
+fn list_keys(context: &ResolvedContext, database: &Database, logger: &mut Stderr) ->  Result<(), E> {
     logger.trace_fn("ls_keys", &format!("listing variables in {}", context));
     
     let variables = database.list_variables(context)?;
@@ -63,7 +63,7 @@ fn list_keys(context: &ResolvedContext, database: &Database, logger: &mut Stderr
 }
 
 /// List all projects in the database
-fn list_projects(database: &Database, logger: &mut Stderr) -> Result<()> {
+fn list_projects(database: &Database, logger: &mut Stderr) ->  Result<(), E> {
     logger.trace_fn("ls_projects", "listing all projects");
     
     let projects = database.list_projects()?;
@@ -92,7 +92,7 @@ fn list_projects(database: &Database, logger: &mut Stderr) -> Result<()> {
 }
 
 /// List all workspaces in current project
-fn list_workspaces(context: &ResolvedContext, database: &Database, logger: &mut Stderr) -> Result<()> {
+fn list_workspaces(context: &ResolvedContext, database: &Database, logger: &mut Stderr) ->  Result<(), E> {
     logger.trace_fn("ls_workspaces", &format!("listing workspaces in project: {}", context.project));
     
     let workspaces = database.list_workspaces(&context.project)?;
@@ -121,7 +121,7 @@ fn list_workspaces(context: &ResolvedContext, database: &Database, logger: &mut 
 }
 
 /// List all keystores in current workspace
-fn list_keystores(context: &ResolvedContext, database: &Database, logger: &mut Stderr) -> Result<()> {  // FIXED: was list_varstores
+fn list_keystores(context: &ResolvedContext, database: &Database, logger: &mut Stderr) ->  Result<(), E> {  // FIXED: was list_varstores
     logger.trace_fn("ls_keystores", &format!("listing keystores in {}.{}", context.project, context.workspace));
     
     let keystores = database.list_keystores(&context.project, &context.workspace)?;  // FIXED: was list_varstores
@@ -168,7 +168,7 @@ fn list_keystores(context: &ResolvedContext, database: &Database, logger: &mut S
 }
 
 /// List documents in current workspace
-fn list_docs(context: &ResolvedContext, _database: &Database, logger: &mut Stderr) -> Result<()> {
+fn list_docs(context: &ResolvedContext, _database: &Database, logger: &mut Stderr) ->  Result<(), E> {
     logger.trace_fn("ls_docs", &format!("listing documents in {}.{}", context.project, context.workspace));
     
     // TODO: Implement document listing when document system is ready
@@ -216,7 +216,7 @@ mod tests {
     }
     
     #[test]
-    fn test_list_keys() -> Result<()> {
+    fn test_list_keys() ->  Result<(), E> {
         let (db, _temp) = create_test_db();
         let context = create_test_context();
         
@@ -227,7 +227,7 @@ mod tests {
     }
     
     #[test]
-    fn test_list_workspaces() -> Result<()> {
+    fn test_list_workspaces() ->  Result<(), E> {
         let (db, _temp) = create_test_db();
         let context = create_test_context();
         
@@ -238,7 +238,7 @@ mod tests {
     }
     
     #[test]
-    fn test_list_keystores() -> Result<()> {
+    fn test_list_keystores() ->  Result<(), E> {
         let (db, _temp) = create_test_db();
         let context = create_test_context();
         
@@ -249,7 +249,7 @@ mod tests {
     }
     
     #[test]
-    fn test_list_projects() -> Result<()> {
+    fn test_list_projects() ->  Result<(), E> {
         let (db, _temp) = create_test_db_with_data();
         let context = create_test_context();
         
@@ -260,7 +260,7 @@ mod tests {
     }
     
     #[test]
-    fn test_list_empty_context() -> Result<()> {
+    fn test_list_empty_context() ->  Result<(), E> {
         let temp_dir = TempDir::new().unwrap();
         let db_path = temp_dir.path().join("empty.db");
         let db = Database::create_or_open(&db_path).unwrap();
@@ -274,7 +274,7 @@ mod tests {
     }
     
     #[test]
-    fn test_long_value_truncation() -> Result<()> {
+    fn test_long_value_truncation() ->  Result<(), E> {
         let temp_dir = TempDir::new().unwrap();
         let db_path = temp_dir.path().join("test.db");
         let mut db = Database::create_or_open(&db_path).unwrap();

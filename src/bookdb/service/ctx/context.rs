@@ -164,7 +164,7 @@ mod tests {
     use super::*;
     
     #[test]
-    fn test_fqcc_parsing() -> Result<()> {
+    fn test_fqcc_parsing() ->  Result<(), E> {
         // CORRECT: Base has no prefix
         let chain = parse_context_chain("work@website.api_keys.var.credentials", "home")?;
         
@@ -180,7 +180,7 @@ mod tests {
     }
     
     #[test]
-    fn test_cdcc_parsing() -> Result<()> {
+    fn test_cdcc_parsing() ->  Result<(), E> {
         // CORRECT: CDCC with @ prefix on chain, not base
         let chain = parse_context_chain("@frontend.deployment.var.production", "work")?;
         
@@ -203,7 +203,7 @@ mod tests {
     }
     
     #[test]
-    fn test_ephemeral_mode() -> Result<()> {
+    fn test_ephemeral_mode() ->  Result<(), E> {
         let chain = parse_context_chain("%temp@quick.test.var.check", "home")?;
         
         assert_eq!(chain.prefix_mode, ChainMode::Ephemeral);
@@ -213,7 +213,7 @@ mod tests {
     }
     
     #[test]
-    fn test_doc_anchor() -> Result<()> {
+    fn test_doc_anchor() ->  Result<(), E> {
         let chain = parse_context_chain("@project.docs.doc.README_md", "home")?;
         
         assert_eq!(chain.anchor, Anchor::Doc);
@@ -223,7 +223,7 @@ mod tests {
     }
     
     #[test]
-    fn test_case_insensitive_anchor() -> Result<()> {
+    fn test_case_insensitive_anchor() ->  Result<(), E> {
         let chain1 = parse_context_chain("@proj.work.VAR.test", "home")?;
         let chain2 = parse_context_chain("@proj.work.var.test", "home")?;
         let chain3 = parse_context_chain("@proj.work.Var.test", "home")?;
@@ -255,7 +255,7 @@ mod tests {
     }
     
     #[test]
-    fn test_display_formatting() -> Result<()> {
+    fn test_display_formatting() ->  Result<(), E> {
         // FQCC: no prefix on base name
         let chain = parse_context_chain("work@website.api_keys.var.credentials", "home")?;
         let display = format!("{}", chain);

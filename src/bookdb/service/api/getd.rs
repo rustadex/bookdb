@@ -3,7 +3,7 @@ use crate::context::ResolvedContext;
 use crate::db::Database;
 use std::io::Write;
 
-pub fn execute(dik: &str, context: &ResolvedContext, db: &Database) -> Result<()> {
+pub fn execute(dik: &str, context: &ResolvedContext, db: &Database) ->  Result<(), E> {
     let (doc_key, seg_path) = dik.split_once('.').unwrap_or((dik, "_root"));
     
     match db.get_doc_segment(doc_key, seg_path, context)? {

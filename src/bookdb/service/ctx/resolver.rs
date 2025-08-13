@@ -85,7 +85,7 @@ mod tests {
     }
     
     #[test]
-    fn test_context_atomicity() -> Result<()> {
+    fn test_context_atomicity() ->  Result<(), E> {
         let resolver = DefaultResolver::new();
         
         let old_context = parse_context_chain("@proj1.workspace1.var.store1", "work")?;
@@ -100,7 +100,7 @@ mod tests {
     }
     
     #[test]
-    fn test_workspace_change_atomicity() -> Result<()> {
+    fn test_workspace_change_atomicity() ->  Result<(), E> {
         let resolver = DefaultResolver::new();
         
         let old_context = parse_context_chain("@proj1.workspace1.var.store1", "work")?;
@@ -116,7 +116,7 @@ mod tests {
     }
     
     #[test]
-    fn test_cdcc_resolution() -> Result<()> {
+    fn test_cdcc_resolution() ->  Result<(), E> {
         let chain = parse_context_chain("@proj.workspace.var.store", "fallback")?;
         let cursors = CursorState {
             base_cursor: "work".to_string(),

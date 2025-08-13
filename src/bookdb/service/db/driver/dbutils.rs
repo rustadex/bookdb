@@ -62,7 +62,7 @@ impl Database {
     }
     
     /// Import variables into context
-    pub fn import_variables(&self, variables: HashMap<String, String>, context: &ResolvedContext) -> Result<()> {
+    pub fn import_variables(&self, variables: HashMap<String, String>, context: &ResolvedContext) ->  Result<(), E> {
         self.logger.trace_fn("database", &format!("importing {} variables into context: {}", variables.len(), context));
         
         for (key, value) in variables {
@@ -73,7 +73,7 @@ impl Database {
     }
     
     /// Import documents into context (stub - not implemented)
-    pub fn import_documents(&self, _documents: HashMap<String, String>, _context: &ResolvedContext) -> Result<()> {
+    pub fn import_documents(&self, _documents: HashMap<String, String>, _context: &ResolvedContext) ->  Result<(), E> {
         // TODO: Implement document import
         todo!("Document import not yet implemented")
     }
@@ -88,19 +88,19 @@ impl Database {
     }
     
     /// Backup base to file (stub - not implemented)
-    pub fn backup_to_file(&self, _path: &std::path::Path) -> Result<()> {
+    pub fn backup_to_file(&self, _path: &std::path::Path) ->  Result<(), E> {
         // TODO: Implement database backup
         todo!("Database backup not yet implemented")
     }
     
     /// Restore base from file (stub - not implemented)
-    pub fn restore_from_file(&self, _path: &std::path::Path) -> Result<()> {
+    pub fn restore_from_file(&self, _path: &std::path::Path) ->  Result<(), E> {
         // TODO: Implement database restore
         todo!("Database restore not yet implemented")
     }
     
     /// Vacuum database (stub - not implemented)
-    pub fn vacuum(&self) -> Result<()> {
+    pub fn vacuum(&self) ->  Result<(), E> {
         // TODO: Implement database vacuum/cleanup
         todo!("Database vacuum not yet implemented")
     }

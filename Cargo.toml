@@ -2,6 +2,8 @@
 name = "bookdb"
 version = "0.4.10"
 edition = "2021"
+build = "build.rs"
+
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
@@ -28,6 +30,8 @@ dev-both-versions = ["context-chain-v1", "context-chain-v3"]  # For testing/migr
 toml = "0.8"
 
 
+[package.metadata.cargo-allow]
+dead_code = true
 
 [package.metadata.sql]
 version = "sqlv2"

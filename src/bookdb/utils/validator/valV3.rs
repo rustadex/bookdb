@@ -14,7 +14,7 @@ use crate::error::{Result, BookdbError};
 /// Validates a context chain string and creates the appropriate V3 type
 /// Returns either VarContextChain or DocContextChain based on anchor
 pub fn validate_and_create_v3(input: &str, fallback_base: &str) -> Result<V3ContextResult> {
-    let mut logger = Stderr::new(&StderrConfig::from_env());
+    let mut logger = Stderr::new();
     logger.trace_fn("v3_validator", &format!("validating context chain: '{}'", input));
     
     // Step 1: Parse into generic V3 chain
@@ -126,7 +126,7 @@ fn specialize_generic_chain(generic: ContextChainV3) -> Result<V3ContextResult> 
 // ============================================================================
 
 /// Validate basic input string requirements
-fn validate_input_string(input: &str) -> Result<()> {
+fn validate_input_string(input: &str) ->  Result<(), E> {
     if input.trim().is_empty() {
         return Err(BookdbError::ContextParse("Empty context chain".to_string()));
     }
@@ -210,7 +210,7 @@ fn parse_anchor(anchor_str: &str) -> Result<Anchor> {
 }
 
 /// Validate component name (alphanumeric, underscore, hyphen only)
-fn validate_component_name(component_type: &str, name: &str) -> Result<()> {
+fn validate_component_name(component_type: &str, name: &str) ->  Result<(), E> {
     if name.is_empty() {
         return Err(BookdbError::ContextParse(
             format!("{} cannot be empty", component_type)

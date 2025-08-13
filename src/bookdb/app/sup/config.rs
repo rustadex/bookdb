@@ -80,7 +80,7 @@ pub fn resolve_paths() -> Paths {
     }
 }
 
-pub fn ensure_dirs(paths: &Paths) -> std::io::Result<()> {
+pub fn ensure_dirs(paths: &Paths) -> std::io:: Result<(), E> {
     std::fs::create_dir_all(&paths.data_dir)?;
     std::fs::create_dir_all(&paths.config_dir)?;
     Ok(())

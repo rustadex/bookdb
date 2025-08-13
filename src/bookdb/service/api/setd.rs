@@ -2,7 +2,7 @@ use crate::error::Result;
 use crate::context::ResolvedContext;
 use crate::db::Database;
 
-pub fn execute(dik_value: &str, context: &ResolvedContext, db: &Database) -> Result<()> {
+pub fn execute(dik_value: &str, context: &ResolvedContext, db: &Database) ->  Result<(), E> {
     let (dik, value) = dik_value.split_once('=')
         .ok_or_else(|| crate::error::BookdbError::Argument("Expected dik=value format".into()))?;
     

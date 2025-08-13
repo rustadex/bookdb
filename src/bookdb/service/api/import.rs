@@ -21,8 +21,8 @@ pub fn execute(
     _mappings: (Option<&str>, Option<&str>, Option<&str>),
     context: &ResolvedContext,
     database: &mut Database,
-) -> Result<()> {
-    let mut logger = Stderr::new(&StderrConfig::from_env());
+) ->  Result<(), E> {
+    let mut logger = Stderr::new();
     logger.trace_fn("import", &format!("importing from file: {:?} to context: {}", file_path, context));
     
     // Check if file exists
@@ -238,7 +238,7 @@ mod tests {
     }
     
     #[test]
-    fn test_import_json() -> Result<()> {
+    fn test_import_json() ->  Result<(), E> {
         let (mut db, _temp) = create_test_db();
         let context = create_test_context();
         
@@ -268,7 +268,7 @@ mod tests {
     }
     
     #[test]
-    fn test_import_key_value() -> Result<()> {
+    fn test_import_key_value() ->  Result<(), E> {
         let (mut db, _temp) = create_test_db();
         let context = create_test_context();
         
@@ -298,7 +298,7 @@ mod tests {
     }
     
     #[test]
-    fn test_format_auto_detection() -> Result<()> {
+    fn test_format_auto_detection() ->  Result<(), E> {
         let (mut db, _temp) = create_test_db();
         let context = create_test_context();
         

@@ -1,25 +1,10 @@
 // src/main.rs - Complete main entry point with all command handlers
 
-use clap::Parser;
-use std::path::PathBuf;
 
 
-mod error;
-mod sql;
-mod db;
-
-
-// mod models; // potentially unused
-
-mod ctx; //changed from context
-
-mod api; //changed from commands
-
-
-mod cli; //get_context_from_command moved here
 use stderr::{Stderr, StderrConfig};
 
-use crate::admin::install::{InstallationManager, require_installation_or_install};
+//use crate::admin::install::{InstallationManager, require_installation_or_install};
 
 use crate::error::{Result, BookdbError};
 use crate::db::Database;
@@ -78,9 +63,9 @@ pub fn resolve_context_chain( args: &mut Vec<T>, context_manager: &mut ContextMa
 
 
 
-pub fn dispatch_router(args: Vec<T>, database: &Database, context_chain ) -> Result<()> {
+pub fn dispatch_router(args: Vec<T>, database: &Database, context_chain ) ->  Result<(), E> {
 
-  let mut logger = Stderr::new(&StderrConfig::from_env());
+  let mut logger = Stderr::new();
 
   // Route commands
   match args.command {
@@ -133,11 +118,11 @@ pub fn dispatch_router(args: Vec<T>, database: &Database, context_chain ) -> Res
 
 
 
-fn dispatch() -> Result<()> {
+fn dispatch() ->  Result<(), E> {
 
 
 
-    let mut logger = Stderr::new(&StderrConfig::from_env());
+    let mut logger = Stderr::new();
     
     let args = cli::Cli::parse();
     

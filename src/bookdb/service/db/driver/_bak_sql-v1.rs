@@ -17,7 +17,7 @@ pub struct Database {
 impl Database {
     /// Create or open a database at the specified path
     pub fn create_or_open(path: &Path) -> Result<Self> {
-        let mut logger = Stderr::new(&StderrConfig::from_env());
+        let mut logger = Stderr::new();
         logger.trace_fn("database", &format!("opening database: {:?}", path));
         
         let connection = Connection::open(path)?;
@@ -51,7 +51,7 @@ impl Database {
     }
     
     /// Set up database schema using external SQL files
-    fn setup_schema(&mut self) -> Result<()> {
+    fn setup_schema(&mut self) ->  Result<(), E> {
         self.logger.trace_fn("database", "setting up schema from SQL files");
         
         // Execute schema creation from external SQL file
@@ -153,7 +153,7 @@ impl Database {
     }
     
     /// Set variable within a transaction (helper for atomic operations)
-    fn set_variable_in_transaction(&self, tx: &Transaction, key: &str, value: &str, context: &ResolvedContext) -> Result<()> {
+    fn set_variable_in_transaction(&self, tx: &Transaction, key: &str, value: &str, context: &ResolvedContext) ->  Result<(), E> {
         let kvns_id = self.resolve_kvns_id_in_transaction(tx, context)?;
         let timestamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
@@ -242,7 +242,7 @@ impl Database {
     }
     
     /// Set variable value
-    pub fn set_variable(&self, key: &str, value: &str, context: &ResolvedContext) -> Result<()> {
+    pub fn set_variable(&self, key: &str, value: &str, context: &ResolvedContext) ->  Result<(), E> {
         self.logger.trace_fn("database", &format!("setting variable: {}={} in context: {}", key, value, context));
         
         let tx = self.connection.unchecked_transaction()?;
@@ -253,7 +253,7 @@ impl Database {
     }
     
     /// Delete a variable
-    pub fn delete_variable(&self, key: &str, context: &ResolvedContext) -> Result<()> {
+    pub fn delete_variable(&self, key: &str, context: &ResolvedContext) ->  Result<(), E> {
         self.logger.trace_fn("database", &format!("deleting variable: {} in context: {}", key, context));
         
         let tx = self.connection.unchecked_transaction()?;
@@ -368,7 +368,7 @@ impl Database {
     }
     
     /// Set document content
-    pub fn set_document(&self, dik: &str, content: &str, context: &ResolvedContext) -> Result<()> {
+    pub fn set_document(&self, dik: &str, content: &str, context: &ResolvedContext) ->  Result<(), E> {
         self.logger.trace_fn("database", &format!("setting document: {}=<content> in context: {}", dik, context));
         
         // For now, just log - document functionality not fully implemented
@@ -414,7 +414,7 @@ impl Database {
     }
     
     /// Import variables into context
-    pub fn import_variables(&self, variables: HashMap<String, String>, context: &ResolvedContext) -> Result<()> {
+    pub fn import_variables(&self, variables: HashMap<String, String>, context: &ResolvedContext) ->  Result<(), E> {
         self.logger.trace_fn("database", &format!("importing {} variables into context: {}", variables.len(), context));
         
         for (key, value) in variables {
@@ -434,7 +434,7 @@ impl Database {
     }
     
     /// Execute raw SQL (for installation and setup)
-    pub fn execute_sql(&self, sql: &str) -> Result<()> {
+    pub fn execute_sql(&self, sql: &str) ->  Result<(), E> {
         self.logger.trace_fn("database", "executing raw SQL");
         self.connection.execute(sql, [])?;
         Ok(())
@@ -488,7 +488,7 @@ mod tests {
     }
     
     #[test]
-    fn test_variable_operations() -> Result<()> {
+    fn test_variable_operations() ->  Result<(), E> {
         let (db, _temp) = create_test_db();
         let context = create_test_context();
         
@@ -512,7 +512,7 @@ mod tests {
     }
     
     #[test]
-    fn test_increment_operations() -> Result<()> {
+    fn test_increment_operations() ->  Result<(), E> {
         let (db, _temp) = create_test_db();
         let context = create_test_context();
         
@@ -532,7 +532,7 @@ mod tests {
     }
     
     #[test]
-    fn test_project_operations() -> Result<()> {
+    fn test_project_operations() ->  Result<(), E> {
         let (db, _temp) = create_test_db();
         let context = create_test_context();
         

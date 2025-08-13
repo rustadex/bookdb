@@ -14,7 +14,7 @@ mod v3_validator_tests {
     // ========================================================================
 
     #[test]
-    fn test_validate_and_create_v3_variable_context() -> Result<()> {
+    fn test_validate_and_create_v3_variable_context() ->  Result<(), E> {
         let result = validate_and_create_v3("@work@proj.workspace.var.keystore", "home")?;
         
         match result {
@@ -33,7 +33,7 @@ mod v3_validator_tests {
     }
 
     #[test]
-    fn test_validate_and_create_v3_document_context() -> Result<()> {
+    fn test_validate_and_create_v3_document_context() ->  Result<(), E> {
         let result = validate_and_create_v3("@base@proj.workspace.doc.readme", "home")?;
         
         match result {
@@ -52,7 +52,7 @@ mod v3_validator_tests {
     }
 
     #[test]
-    fn test_upgrade_to_specialized() -> Result<()> {
+    fn test_upgrade_to_specialized() ->  Result<(), E> {
         // Create a generic ContextChainV3 (this would normally come from parsing)
         let generic = ContextChainV3 {
             segments: vec![], // TODO: Add segments when implemented
@@ -74,14 +74,14 @@ mod v3_validator_tests {
     // ========================================================================
 
     #[test]
-    fn test_persistent_prefix_mode() -> Result<()> {
+    fn test_persistent_prefix_mode() ->  Result<(), E> {
         let result = validate_and_create_v3("@proj.workspace.var.keystore", "home")?;
         assert_eq!(result.as_generic().chain_type, ContextType::Variable);
         Ok(())
     }
 
     #[test]
-    fn test_ephemeral_prefix_mode() -> Result<()> {
+    fn test_ephemeral_prefix_mode() ->  Result<(), E> {
         let result = validate_and_create_v3("%proj.workspace.var.keystore", "home")?;
         match result {
             V3ContextResult::Variable(var_chain) => {
@@ -93,7 +93,7 @@ mod v3_validator_tests {
     }
 
     #[test]
-    fn test_action_prefix_mode() -> Result<()> {
+    fn test_action_prefix_mode() ->  Result<(), E> {
         let result = validate_and_create_v3("#proj.workspace.var.keystore", "home")?;
         match result {
             V3ContextResult::Variable(var_chain) => {
@@ -121,7 +121,7 @@ mod v3_validator_tests {
     // ========================================================================
 
     #[test]
-    fn test_fqcc_base_parsing() -> Result<()> {
+    fn test_fqcc_base_parsing() ->  Result<(), E> {
         let result = validate_and_create_v3("@work@proj.workspace.var.keystore", "home")?;
         match result {
             V3ContextResult::Variable(var_chain) => {
@@ -134,7 +134,7 @@ mod v3_validator_tests {
     }
 
     #[test]
-    fn test_cdcc_base_fallback() -> Result<()> {
+    fn test_cdcc_base_fallback() ->  Result<(), E> {
         let result = validate_and_create_v3("@proj.workspace.var.keystore", "fallback_base")?;
         match result {
             V3ContextResult::Variable(var_chain) => {
@@ -174,7 +174,7 @@ mod v3_validator_tests {
     }
 
     #[test]
-    fn test_anchor_case_insensitive() -> Result<()> {
+    fn test_anchor_case_insensitive() ->  Result<(), E> {
         let var_upper = validate_and_create_v3("@proj.workspace.VAR.keystore", "home")?;
         let var_lower = validate_and_create_v3("@proj.workspace.var.keystore", "home")?;
         
@@ -207,7 +207,7 @@ mod v3_validator_tests {
     // ========================================================================
 
     #[test]
-    fn test_var_chain_deref_coercion() -> Result<()> {
+    fn test_var_chain_deref_coercion() ->  Result<(), E> {
         let result = validate_and_create_v3("@proj.workspace.var.keystore", "home")?;
         
         if let V3ContextResult::Variable(var_chain) = result {
@@ -227,7 +227,7 @@ mod v3_validator_tests {
     }
 
     #[test]
-    fn test_doc_chain_deref_coercion() -> Result<()> {
+    fn test_doc_chain_deref_coercion() ->  Result<(), E> {
         let result = validate_and_create_v3("@proj.workspace.doc.readme", "home")?;
         
         if let V3ContextResult::Document(doc_chain) = result {
@@ -278,7 +278,7 @@ mod v3_validator_tests {
     // ========================================================================
 
     #[test]
-    fn test_v3_context_result_display() -> Result<()> {
+    fn test_v3_context_result_display() ->  Result<(), E> {
         let var_result = validate_and_create_v3("@proj.workspace.var.keystore", "home")?;
         let doc_result = validate_and_create_v3("@proj.workspace.doc.readme", "home")?;
         
@@ -294,7 +294,7 @@ mod v3_validator_tests {
     }
 
     #[test]
-    fn test_as_generic_accessor() -> Result<()> {
+    fn test_as_generic_accessor() ->  Result<(), E> {
         let result = validate_and_create_v3("@proj.workspace.var.keystore", "home")?;
         
         // Test that as_generic() returns the underlying ContextChainV3
@@ -309,7 +309,7 @@ mod v3_validator_tests {
     // ========================================================================
 
     #[test]
-    fn test_v3_with_resolver_compatibility() -> Result<()> {
+    fn test_v3_with_resolver_compatibility() ->  Result<(), E> {
         // Test that V3 types work with existing resolver logic
         let result = validate_and_create_v3("@proj.workspace.var.keystore", "home")?;
         
@@ -355,7 +355,7 @@ mod v3_validator_tests {
     // ========================================================================
 
     #[test]
-    fn test_roundtrip_property() -> Result<()> {
+    fn test_roundtrip_property() ->  Result<(), E> {
         // Test that valid inputs can be parsed and displayed consistently
         let inputs = vec![
             "@proj.workspace.var.keystore",

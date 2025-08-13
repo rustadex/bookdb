@@ -1,14 +1,15 @@
 // src/db/mod.rs - Database module organization
 
 
-mod core;
-mod dbutils;
-mod project;
-mod workspace;
-mod keystore;
-mod docstore;
+pub mod core;
+pub mod dbutils;
+pub mod project;
+pub mod workspace;
+pub mod keystore;
+pub mod docstore;
+pub mod multibase;
 
-mod manager; //for managing base.sqlite3 files multi-base support
+pub mod manager; //for managing base.sqlite3 files multi-base support
 
 // sql constants are now dynamically generated from build.rs
 

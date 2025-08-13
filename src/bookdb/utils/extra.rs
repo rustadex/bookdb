@@ -11,12 +11,12 @@ pub struct LsTableFormatter {
 impl LsTableFormatter {
     pub fn new() -> Self {
         Self {
-            logger: Stderr::new(&StderrConfig::from_env()),
+            logger: Stderr::new(),
         }
     }
     
     /// Format and display a table of items
-    pub fn display_table(&mut self, headers: &[&str], rows: &[Vec<String>], title: Option<&str>) -> Result<()> {
+    pub fn display_table(&mut self, headers: &[&str], rows: &[Vec<String>], title: Option<&str>) ->  Result<(), E> {
         if let Some(title) = title {
             self.logger.banner(title, '=')?;
         }
@@ -48,7 +48,7 @@ impl LsTableFormatter {
     }
     
     /// Display variables in a nice table format
-    pub fn display_variables(&mut self, variables: &[(String, String)], context: &str) -> Result<()> {
+    pub fn display_variables(&mut self, variables: &[(String, String)], context: &str) ->  Result<(), E> {
         let title = format!("Variables in {}", context);
         
         let rows: Vec<Vec<String>> = variables.iter()
@@ -59,7 +59,7 @@ impl LsTableFormatter {
     }
     
     /// Display projects, workspaces, etc. in table format
-    pub fn display_namespaces(&mut self, items: &[String], namespace_type: &str, context: &str) -> Result<()> {
+    pub fn display_namespaces(&mut self, items: &[String], namespace_type: &str, context: &str) ->  Result<(), E> {
         let title = format!("{} in {}", namespace_type, context);
         
         let rows: Vec<Vec<String>> = items.iter()
@@ -83,7 +83,7 @@ pub struct OperationProgress {
 
 impl OperationProgress {
     pub fn new(operation_name: &str) -> Self {
-        let logger = Stderr::new(&StderrConfig::from_env());
+        let logger = Stderr::new();
         Self {
             logger,
             operation_name: operation_name.to_string(),
@@ -97,7 +97,7 @@ impl OperationProgress {
         self.logger.trace_fn("progress", &format!("{}: starting {} items", self.operation_name, total));
     }
     
-    pub fn increment(&mut self, item_name: &str) -> Result<()> {
+    pub fn increment(&mut self, item_name: &str) ->  Result<(), E> {
         self.current_item += 1;
         
         if let Some(total) = self.total_items {
@@ -111,7 +111,7 @@ impl OperationProgress {
         Ok(())
     }
     
-    pub fn complete(&mut self) -> Result<()> {
+    pub fn complete(&mut self) ->  Result<(), E> {
         self.logger.okay(&format!("{} completed successfully! Processed {} items.", 
             self.operation_name, self.current_item));
         Ok(())
@@ -128,12 +128,12 @@ pub struct DestructiveOpConfirm {
 impl DestructiveOpConfirm {
     pub fn new() -> Self {
         Self {
-            logger: Stderr::new(&StderrConfig::from_env()),
+            logger: Stderr::new(),
         }
     }
     
     /// Confirm deletion operations
-    pub fn confirm_delete(&mut self, item_type: &str, item_name: &str) -> Result<bool> {
+    pub fn confirm_delete(&mut self, item_type: &str, item_name: &str) -> Result<bool, E> {
         self.logger.warn(&format!("About to delete {} '{}'", item_type, item_name));
         self.logger.error("This operation cannot be undone!");
         
@@ -153,7 +153,7 @@ impl DestructiveOpConfirm {
     }
     
     /// Confirm import/export operations that might overwrite data
-    pub fn confirm_overwrite(&mut self, operation: &str, target: &str) -> Result<bool> {
+    pub fn confirm_overwrite(&mut self, operation: &str, target: &str) -> Result<bool, E> {
         self.logger.warn(&format!("About to {} - this may overwrite existing data", operation));
         self.logger.info(&format!("Target: {}", target));
         
@@ -170,7 +170,7 @@ impl DestructiveOpConfirm {
     }
     
     /// Confirm reset operations
-    pub fn confirm_reset(&mut self, scope: &str) -> Result<bool> {
+    pub fn confirm_reset(&mut self, scope: &str) -> Result<bool, E> {
         self.logger.error(&format!("About to reset {} - this will delete all data in scope!", scope));
         self.logger.error("This operation cannot be undone!");
         

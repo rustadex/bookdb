@@ -1,30 +1,30 @@
 
 /// Handle cursor status display
-fn handle_cursor_command(
+pub fnhandle_cursor_command(
     context_manager: &mut ContextManager,
     cursor_state: &bookdb::context::CursorState
-) -> Result<()> {
+) ->  Result<(), E> {
     context_manager.show_cursor_status(cursor_state)
 }
 
 /// Handle context switching with 'use' command
-fn handle_use_command(
+pub fnhandle_use_command(
     context_str: String,
     context_manager: &mut ContextManager,
     cursor_state: &mut bookdb::context::CursorState,
-) -> Result<()> {
+) ->  Result<(), E> {
     let chain = parse_context_chain(&context_str, &cursor_state.base_cursor)?;
     context_manager.update_cursor(&chain, cursor_state)?;
     Ok(())
 }
 
 /// Handle variable retrieval
-fn handle_getv_command(
+pub fnhandle_getv_command(
     key: String,
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     logger.trace_fn("getv", &format!("key: {}, context: {}", key, context));
     
     match database.get_variable(&key, context)? {
@@ -42,12 +42,12 @@ fn handle_getv_command(
 }
 
 /// Handle variable setting
-fn handle_setv_command(
+pub fnhandle_setv_command(
     key_value: String,
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     logger.trace_fn("setv", &format!("input: {}, context: {}", key_value, context));
     
     let (key, value) = key_value.split_once('=')
@@ -60,12 +60,12 @@ fn handle_setv_command(
 }
 
 /// Handle variable deletion
-fn handle_delv_command(
+pub fnhandle_delv_command(
     key: String,
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     logger.trace_fn("delv", &format!("key: {}, context: {}", key, context));
     
     // Check if key exists first
@@ -89,36 +89,36 @@ fn handle_delv_command(
 }
 
 /// Handle increment command
-fn handle_inc_command(
+pub fnhandle_inc_command(
     key: String,
     amount: i64,
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     logger.trace_fn("inc", &format!("key: {}, amount: {}, context: {}", key, amount, context));
     commands::execute_inc(key, amount, context, database)
 }
 
 /// Handle decrement command
-fn handle_dec_command(
+pub fnhandle_dec_command(
     key: String,
     amount: i64,
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     logger.trace_fn("dec", &format!("key: {}, amount: {}, context: {}", key, amount, context));
     commands::execute_dec(key, amount, context, database)
 }
 
 /// Handle listing command
-fn handle_ls_command(
+pub fnhandle_ls_command(
     target: cli::LsTarget,
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     use bookdb::context_manager::LsTableFormatter;
     
     logger.trace_fn("ls", &format!("target: {:?}, context: {}", target, context));
@@ -152,14 +152,14 @@ fn handle_ls_command(
 }
 
 /// Handle export command
-fn handle_export_command(
+pub fnhandle_export_command(
     file_path: PathBuf,
     format: Option<String>,
     filters: (Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>),
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     use bookdb::context_manager::{OperationProgress, DestructiveOpConfirm};
     
     logger.trace_fn("export", &format!("file: {:?}, context: {}", file_path, context));
@@ -225,14 +225,14 @@ fn handle_export_command(
 }
 
 /// Handle import command with progress tracking and confirmation
-fn handle_import_command(
+pub fnhandle_import_command(
     file_path: PathBuf,
     mode: Option<String>,
     mappings: (Option<String>, Option<String>, Option<String>),
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     use bookdb::context_manager::{OperationProgress, DestructiveOpConfirm};
     
     logger.trace_fn("import", &format!("file: {:?}, context: {}", file_path, context));
@@ -290,12 +290,12 @@ fn handle_import_command(
 }
 
 /// Handle document retrieval
-fn handle_getd_command(
+pub fnhandle_getd_command(
     dik: String,
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     logger.trace_fn("getd", &format!("dik: {}, context: {}", dik, context));
     
     match database.get_document(&dik, context)? {
@@ -313,12 +313,12 @@ fn handle_getd_command(
 }
 
 /// Handle document setting
-fn handle_setd_command(
+pub fnhandle_setd_command(
     dik_value: String,
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     logger.trace_fn("setd", &format!("input: {}, context: {}", dik_value, context));
     
     let (dik, content) = dik_value.split_once('=')
@@ -331,12 +331,12 @@ fn handle_setd_command(
 }
 
 /// Handle migration command
-fn handle_migrate_command(
+pub fnhandle_migrate_command(
     dry_run: bool,
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     logger.trace_fn("migrate", &format!("dry_run: {}, context: {}", dry_run, context));
     
     if dry_run {
@@ -355,11 +355,11 @@ fn handle_migrate_command(
 }
 
 /// Handle installation command
-fn handle_install_command(
+pub fnhandle_install_command(
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     logger.trace_fn("install", "performing installation");
     
     // TODO: Implement full installation logic

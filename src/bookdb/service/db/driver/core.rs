@@ -20,7 +20,7 @@ pub struct Database {
 impl Database {
     /// Create or open a database at the specified path
     pub fn create_or_open(path: &Path) -> Result<Self> {
-        let mut logger = Stderr::new(&StderrConfig::from_env());
+        let mut logger = Stderr::new();
         logger.trace_fn("database", &format!("opening database: {:?}", path));
         
         let connection = Connection::open(path)?;
@@ -54,7 +54,7 @@ impl Database {
     }
     
     /// Set up database schema using external SQL files
-    fn setup_schema(&mut self) -> Result<()> {
+    fn setup_schema(&mut self) ->  Result<(), E> {
         self.logger.trace_fn("database", "setting up schema from external files");
         
         // Use external SQL files via sql.rs
@@ -66,7 +66,7 @@ impl Database {
     }
     
     /// Execute raw SQL (for installation and setup)
-    pub fn execute_sql(&self, sql: &str) -> Result<()> {
+    pub fn execute_sql(&self, sql: &str) ->  Result<(), E> {
         self.logger.trace_fn("database", "executing raw SQL");
         self.connection.execute(sql, [])?;
         Ok(())

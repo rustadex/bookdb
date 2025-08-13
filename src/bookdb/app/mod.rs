@@ -1,5 +1,8 @@
 
 // app sub package
+pub mod sup;
+pub mod admin;
+pub mod ctrl;
 
 //Support Functions
 #[path = "sup/config.rs"]
@@ -20,7 +23,7 @@ pub mod install;
 pub mod cli;
 
 #[path = "ctrl/handlers.rs"]
-pub mod hanlders;
+pub mod handlers;
 
 #[path = "ctrl/dispatch.rs"]
 pub mod dispatch;

@@ -41,7 +41,7 @@ impl Database {
     }
     
     /// Set document content (upsert operation)
-    pub fn set_document(&self, key: &str, content: &str, context: &ResolvedContext) -> Result<()> {
+    pub fn set_document(&self, key: &str, content: &str, context: &ResolvedContext) ->  Result<(), E> {
         self.logger.trace_fn("database", &format!("setting document {} in context: {}", key, context));
         
         let tx = self.connection.transaction()?;
@@ -57,7 +57,7 @@ impl Database {
     }
     
     /// Delete document by key and context
-    pub fn delete_document(&self, key: &str, context: &ResolvedContext) -> Result<bool> {
+    pub fn delete_document(&self, key: &str, context: &ResolvedContext) -> Result<bool, E> {
         self.logger.trace_fn("database", &format!("deleting document {} in context: {}", key, context));
         
         let changes = self.connection.execute(
@@ -98,7 +98,7 @@ impl Database {
     }
     
     /// Set document segment content
-    pub fn set_doc_segment(&self, doc_key: &str, path: &str, mime: &str, content: &[u8], ds_id: i64) -> Result<()> {
+    pub fn set_doc_segment(&self, doc_key: &str, path: &str, mime: &str, content: &[u8], ds_id: i64) ->  Result<(), E> {
         self.logger.trace_fn("database", &format!("setting doc segment {}.{}", doc_key, path));
         
         let tx = self.connection.transaction()?;
@@ -146,13 +146,13 @@ impl Database {
     }
     
     /// Create a new document store (stub - implicit through first document)
-    pub fn create_docstore(&self, _project: &str, _workspace: &str) -> Result<()> {
+    pub fn create_docstore(&self, _project: &str, _workspace: &str) ->  Result<(), E> {
         // TODO: Implement explicit docstore creation if needed
         todo!("Explicit docstore creation not yet implemented")
     }
     
     /// Delete a document store (stub - not implemented)
-    pub fn delete_docstore(&self, _project: &str, _workspace: &str) -> Result<()> {
+    pub fn delete_docstore(&self, _project: &str, _workspace: &str) ->  Result<(), E> {
         // TODO: Implement docstore deletion with cascade
         todo!("Docstore deletion not yet implemented")
     }

@@ -12,8 +12,8 @@ use crate::db::Database;
 use crate::rdx::stderr::{Stderr, StderrConfig};
 
 /// Execute getv command: retrieve variable value
-pub fn execute(key: &str, context: &ResolvedContext, database: &Database) -> Result<()> {
-    let mut logger = Stderr::new(&StderrConfig::from_env());
+pub fn execute(key: &str, context: &ResolvedContext, database: &Database) ->  Result<(), E> {
+    let mut logger = Stderr::new();
     logger.trace_fn("getv", &format!("retrieving key: {} from context: {}", key, context));
     
     // Validate key name
@@ -65,7 +65,7 @@ mod tests {
     }
     
     #[test]
-    fn test_getv_existing_key() -> Result<()> {
+    fn test_getv_existing_key() ->  Result<(), E> {
         let (mut db, _temp) = create_test_db();
         let context = create_test_context();
         

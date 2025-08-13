@@ -28,7 +28,7 @@ mod phase1_integration_tests {
     }
     
     #[test]
-    fn test_concepts_md_compliant_parsing() -> Result<()> {
+    fn test_concepts_md_compliant_parsing() ->  Result<(), E> {
         // Test FQCC: work@website.api_keys.var.credentials
         let chain = parse_context_chain("@work@website.api_keys.var.credentials", "home")?;
         
@@ -54,7 +54,7 @@ mod phase1_integration_tests {
     }
     
     #[test]
-    fn test_chain_mode_parsing() -> Result<()> {
+    fn test_chain_mode_parsing() ->  Result<(), E> {
         // Persistent mode (@)
         let persistent = parse_context_chain("@proj.workspace.var.keystore", "home")?;
         assert_eq!(persistent.prefix_mode, ChainMode::Persistent);
@@ -71,7 +71,7 @@ mod phase1_integration_tests {
     }
     
     #[test]
-    fn test_anchor_case_insensitive() -> Result<()> {
+    fn test_anchor_case_insensitive() ->  Result<(), E> {
         let var_upper = parse_context_chain("@proj.workspace.VAR.keystore", "home")?;
         let var_lower = parse_context_chain("@proj.workspace.var.keystore", "home")?;
         let var_mixed = parse_context_chain("@proj.workspace.Var.keystore", "home")?;
@@ -133,7 +133,7 @@ mod phase1_integration_tests {
     }
     
     #[test]
-    fn test_context_atomicity_enforcement() -> Result<()> {
+    fn test_context_atomicity_enforcement() ->  Result<(), E> {
         let resolver = DefaultResolver::new();
         
         // Test project change resets workspace and tail
@@ -167,7 +167,7 @@ mod phase1_integration_tests {
     }
     
     #[test]
-    fn test_cdcc_resolution() -> Result<()> {
+    fn test_cdcc_resolution() ->  Result<(), E> {
         let chain = parse_context_chain("@proj.workspace.var.store", "fallback")?;
         let cursors = CursorState {
             base_cursor: "work".to_string(),
@@ -202,7 +202,7 @@ mod phase1_integration_tests {
     }
     
     #[test]
-    fn test_installation_process_creates_required_structures() -> Result<()> {
+    fn test_installation_process_creates_required_structures() ->  Result<(), E> {
         let (config, _temp) = create_test_environment();
         let mut manager = InstallationManager::new(config.clone());
         
@@ -221,7 +221,7 @@ mod phase1_integration_tests {
     }
     
     #[test]
-    fn test_installation_creates_invincible_superchain() -> Result<()> {
+    fn test_installation_creates_invincible_superchain() ->  Result<(), E> {
         let (config, _temp) = create_test_environment();
         let mut manager = InstallationManager::new(config.clone());
         
@@ -243,7 +243,7 @@ mod phase1_integration_tests {
     }
     
     #[test]
-    fn test_cursor_state_persistence() -> Result<()> {
+    fn test_cursor_state_persistence() ->  Result<(), E> {
         let (config, _temp) = create_test_environment();
         let mut manager = ContextManager::new(config);
         
@@ -265,7 +265,7 @@ mod phase1_integration_tests {
     }
     
     #[test]
-    fn test_context_banner_integration() -> Result<()> {
+    fn test_context_banner_integration() ->  Result<(), E> {
         let (config, _temp) = create_test_environment();
         let mut manager = ContextManager::new(config);
         
@@ -278,7 +278,7 @@ mod phase1_integration_tests {
     }
     
     #[test]
-    fn test_full_workflow_with_ephemeral_context() -> Result<()> {
+    fn test_full_workflow_with_ephemeral_context() ->  Result<(), E> {
         let (config, _temp) = create_test_environment();
         
         // Install BookDB
@@ -294,7 +294,7 @@ mod phase1_integration_tests {
     }
     
     #[test]
-    fn test_error_handling_and_user_feedback() -> Result<()> {
+    fn test_error_handling_and_user_feedback() ->  Result<(), E> {
         // Test that various error conditions produce appropriate user feedback
         
         // Invalid context chain
@@ -311,7 +311,7 @@ mod phase1_integration_tests {
     }
     
     #[test]
-    fn test_display_formatting() -> Result<()> {
+    fn test_display_formatting() ->  Result<(), E> {
         // Test that context chains display correctly for user interfaces
         
         let fqcc = parse_context_chain("@work@website.api_keys.var.credentials", "home")?;
@@ -331,7 +331,7 @@ mod phase1_integration_tests {
     
     /// Integration test simulating real user workflow
     #[test]
-    fn test_complete_user_workflow() -> Result<()> {
+    fn test_complete_user_workflow() ->  Result<(), E> {
         let (config, _temp) = create_test_environment();
         
         // Step 1: Installation

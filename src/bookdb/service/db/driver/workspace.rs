@@ -23,7 +23,7 @@ impl Database {
     }
     
     /// Ensure a workspace exists within a project (implicit through keystores/docstores)
-    pub fn ensure_workspace_exists(&self, project: &str, workspace: &str) -> Result<()> {
+    pub fn ensure_workspace_exists(&self, project: &str, workspace: &str) ->  Result<(), E> {
         self.logger.trace_fn("database", &format!("ensuring workspace exists: {}.{}", project, workspace));
         
         // First ensure project exists
@@ -36,13 +36,13 @@ impl Database {
     }
     
     /// Create a new workspace (stub - implicit through first keystore/docstore)
-    pub fn create_workspace(&self, _project: &str, _name: &str) -> Result<()> {
+    pub fn create_workspace(&self, _project: &str, _name: &str) ->  Result<(), E> {
         // TODO: Implement explicit workspace creation if needed
         todo!("Explicit workspace creation not yet implemented")
     }
     
     /// Delete a workspace (stub - not implemented)
-    pub fn delete_workspace(&self, _project: &str, _name: &str) -> Result<()> {
+    pub fn delete_workspace(&self, _project: &str, _name: &str) ->  Result<(), E> {
         // TODO: Implement workspace deletion with cascade
         todo!("Workspace deletion not yet implemented")
     }

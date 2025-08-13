@@ -98,7 +98,7 @@ pub fn validate_and_expand_context_chain(
     input: &str, 
     fallback_base: &str
 ) -> Result<ExpandedContext, ContextValidationError> {
-    let mut logger = Stderr::new(&StderrConfig::from_env());
+    let mut logger = Stderr::new();
     
     logger.trace_fn("context_validator", &format!("validating context chain: '{}'", input));
     

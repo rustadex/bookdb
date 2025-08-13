@@ -32,7 +32,7 @@ impl CursorState {
     }
     
     /// Save cursor state to disk
-    pub fn save_to_disk(&self, config: &Config) -> Result<()> {
+    pub fn save_to_disk(&self, config: &Config) ->  Result<(), E> {
         let cursor_file = config.get_cursor_file_path();
         
         // Ensure parent directory exists
@@ -89,7 +89,7 @@ pub fn read_cursor(paths: &Paths) -> (Option<String>, Option<String>) {
 }
 
 /// Legacy cursor writing (for backward compatibility)
-pub fn write_cursor(paths: &Paths, base_db_abs: Option<&str>, chain_full: Option<&str>) -> Result<()> {
+pub fn write_cursor(paths: &Paths, base_db_abs: Option<&str>, chain_full: Option<&str>) ->  Result<(), E> {
     if let Some(b) = base_db_abs { 
         if !b.is_empty() { 
             fs::write(&paths.cursor_base_path, b)
@@ -126,7 +126,7 @@ mod tests {
     }
     
     #[test]
-    fn test_cursor_state_persistence() -> Result<()> {
+    fn test_cursor_state_persistence() ->  Result<(), E> {
         let (config, _temp) = create_test_config();
         
         // Create and save cursor state
@@ -143,7 +143,7 @@ mod tests {
     }
     
     #[test]
-    fn test_cursor_state_default_when_file_missing() -> Result<()> {
+    fn test_cursor_state_default_when_file_missing() ->  Result<(), E> {
         let (config, _temp) = create_test_config();
         
         // Load from non-existent file should return default

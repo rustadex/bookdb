@@ -1,7 +1,9 @@
 
 // must load first due to build.rs
 pub mod utils;
-
+pub mod oxidize; 
+pub mod service;
+pub mod app;  
 
 // --------------------------------------------------------------------
 // Phase 1.7 upgrade
@@ -39,11 +41,11 @@ pub mod info {
 }
 
 // TODO: Re-enable when app module is ready
-// pub mod app;
-// pub use app::sup::error; 
-// pub use app::ctrl::{ dispatch as run };
-// pub use app::install::{ 
-//   InstallGuard, 
-//   InstallationManager, 
-//   require_installation_or_install 
-// };
+
+pub use app::sup::error; 
+pub use app::ctrl::{ dispatch as run };
+pub use app::install::{ 
+  InstallGuard, 
+  InstallationManager, 
+  require_installation_or_install 
+};

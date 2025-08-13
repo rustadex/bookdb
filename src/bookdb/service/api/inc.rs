@@ -11,8 +11,8 @@ pub fn execute(
     amount: i64,
     context: &ResolvedContext,
     database: &Database,
-) -> Result<()> {
-    let mut logger = Stderr::new(&StderrConfig::from_env());
+) ->  Result<(), E> {
+    let mut logger = Stderr::new();
     logger.trace_fn("inc", &format!("incrementing key '{}' by {} in context: {}", key, amount, context));
     
     // Validate inputs

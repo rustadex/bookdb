@@ -22,7 +22,7 @@ pub struct ContextManager {
 
 impl ContextManager {
     pub fn new(config: Config) -> Self {
-        let logger = Stderr::new(&StderrConfig::from_env());
+        let logger = Stderr::new();
         Self {
             config,
             logger,
@@ -43,13 +43,13 @@ impl ContextManager {
     }
     
     /// Save cursor state to disk - delegates to CursorState  
-    pub fn save_cursor_state(&mut self, cursor_state: &CursorState) -> Result<()> {
+    pub fn save_cursor_state(&mut self, cursor_state: &CursorState) ->  Result<(), E> {
         self.logger.trace_fn("context_manager", "saving cursor state");
         cursor_state.save_to_disk(&self.config)
     }
     
     /// Update cursor with atomicity rules and context banner
-    pub fn update_cursor(&mut self, new_context: &ContextChain, current_cursors: &mut CursorState) -> Result<()> {
+    pub fn update_cursor(&mut self, new_context: &ContextChain, current_cursors: &mut CursorState) ->  Result<(), E> {
         let old_context = current_cursors.context_cursor.clone();
         
         // Apply atomicity rules if changing from existing context
@@ -72,7 +72,7 @@ impl ContextManager {
     }
     
     /// Show context banner when context changes (private helper)
-    fn show_context_banner_if_changed(&mut self, context: &ContextChain) -> Result<()> {
+    fn show_context_banner_if_changed(&mut self, context: &ContextChain) ->  Result<(), E> {
         let context_display = format!("{}", context);
         
         // Only show banner if context actually changed
@@ -89,7 +89,7 @@ impl ContextManager {
     }
     
     /// Display current context banner
-    pub fn show_context_banner(&mut self, context: &ContextChain) -> Result<()> {
+    pub fn show_context_banner(&mut self, context: &ContextChain) ->  Result<(), E> {
         let base_part = context.base.as_ref()
             .map(|b| format!("{}@", b))
             .unwrap_or_else(|| "<current>@".to_string());
@@ -126,7 +126,7 @@ impl ContextManager {
     }
     
     /// Show cursor status in a nice format
-    pub fn show_cursor_status(&mut self, cursor_state: &CursorState) -> Result<()> {
+    pub fn show_cursor_status(&mut self, cursor_state: &CursorState) ->  Result<(), E> {
         self.logger.banner("Current Cursor Status", '=')?;
         
         self.logger.info(&format!("Base: {}", cursor_state.base_cursor));
@@ -190,7 +190,7 @@ mod tests {
     }
     
     #[test]
-    fn test_context_banner_display() -> Result<()> {
+    fn test_context_banner_display() ->  Result<(), E> {
         let (mut manager, _temp) = create_test_context_manager();
         
         let context = super::super::context::parse_context_chain("work@proj.workspace.var.keystore", "home")?;
@@ -202,7 +202,7 @@ mod tests {
     }
     
     #[test]
-    fn test_context_manager_delegates_to_cursor_state() -> Result<()> {
+    fn test_context_manager_delegates_to_cursor_state() ->  Result<(), E> {
         let (mut manager, _temp) = create_test_context_manager();
         
         // Test that cursor operations are delegated properly

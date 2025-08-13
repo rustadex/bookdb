@@ -12,8 +12,8 @@ use crate::db::Database;
 use crate::rdx::stderr::{Stderr, StderrConfig};
 
 /// Execute setv command: set variable key=value
-pub fn execute(key_value: &str, context: &ResolvedContext, database: &mut Database) -> Result<()> {
-    let mut logger = Stderr::new(&StderrConfig::from_env());
+pub fn execute(key_value: &str, context: &ResolvedContext, database: &mut Database) ->  Result<(), E> {
+    let mut logger = Stderr::new();
     logger.trace_fn("setv", &format!("setting variable: {} in context: {}", key_value, context));
     
     // Parse key=value format
@@ -84,7 +84,7 @@ mod tests {
     }
     
     #[test]
-    fn test_setv_new_variable() -> Result<()> {
+    fn test_setv_new_variable() ->  Result<(), E> {
         let (mut db, _temp) = create_test_db();
         let context = create_test_context();
         
@@ -99,7 +99,7 @@ mod tests {
     }
     
     #[test]
-    fn test_setv_update_variable() -> Result<()> {
+    fn test_setv_update_variable() ->  Result<(), E> {
         let (mut db, _temp) = create_test_db();
         let context = create_test_context();
         
@@ -117,7 +117,7 @@ mod tests {
     }
     
     #[test]
-    fn test_setv_with_spaces() -> Result<()> {
+    fn test_setv_with_spaces() ->  Result<(), E> {
         let (mut db, _temp) = create_test_db();
         let context = create_test_context();
         
@@ -177,7 +177,7 @@ mod tests {
     }
     
     #[test]
-    fn test_setv_complex_values() -> Result<()> {
+    fn test_setv_complex_values() ->  Result<(), E> {
         let (mut db, _temp) = create_test_db();
         let context = create_test_context();
         

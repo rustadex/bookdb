@@ -388,7 +388,7 @@ fn config(cli: &CliArgs) -> Result<Config>
 #### **Application Lifecycle Pattern**
 
 ```rust
-fn main() -> Result<()> {
+fn main() ->  Result<(), E> {
     // 1. Bootstrap & early setup
     let cli = options();  // Parse CLI first
     
@@ -411,7 +411,7 @@ fn main() -> Result<()> {
 
 ```rust
 // === High-Order Functions (Dispatchable) ===
-pub fn execute_*() -> Result<()>     // Primary user commands
+pub fn execute_*() ->  Result<(), E>     // Primary user commands
 
 // === Guard Functions (Reusable at any ordinality) ===
 pub fn is_dev_mode() -> bool           // BashFX: is_dev
@@ -419,7 +419,7 @@ pub fn is_valid_context(s: &str) -> bool // BashFX: is_*
 
 // === Development Functions (Guards Required) ===
 #[cfg(debug_assertions)]
-pub fn dev_*() -> Result<()>  // BashFX: dev_* pattern
+pub fn dev_*() ->  Result<(), E>  // BashFX: dev_* pattern
 ```
 
 #### **Server/Daemon Context**
@@ -428,7 +428,7 @@ Even when wrapped in servers or daemons, ODX maintains CLI as the primary interf
 
 ```rust
 // Server context - CLI remains the interface
-fn server_main() -> Result<()> {
+fn server_main() ->  Result<(), E> {
     // Parse CLI even in daemon mode
     let cli = options();
     
@@ -455,7 +455,7 @@ fn server_main() -> Result<()> {
 ```rust
 use stderr::Stderr;
 
-pub fn execute_getv(key: &str, config: &OxidexConfig) -> Result<()> {
+pub fn execute_getv(key: &str, config: &OxidexConfig) ->  Result<(), E> {
     let mut logger = Stderr::new(); // Picks up ODX environment vars
     
     if config.show_trace() {
@@ -587,11 +587,11 @@ pub struct RcFile {
 }
 
 impl RcFile {
-    pub fn create_session(&self, vars: &HashMap<String, String>) -> Result<()> {
+    pub fn create_session(&self, vars: &HashMap<String, String>) ->  Result<(), E> {
         // Write RC file to indicate active session
     }
     
-    pub fn destroy_session(&self) -> Result<()> {
+    pub fn destroy_session(&self) ->  Result<(), E> {
         // Remove RC file to end session
     }
     
@@ -613,11 +613,11 @@ pub struct CursorFile {
 }
 
 impl CursorFile {
-    pub fn mark_operation(&self, state: &str) -> Result<()> {
+    pub fn mark_operation(&self, state: &str) ->  Result<(), E> {
         // Write cursor to track operation state
     }
     
-    pub fn clear_operation(&self) -> Result<()> {
+    pub fn clear_operation(&self) ->  Result<(), E> {
         // Remove cursor when operation complete
     }
     
@@ -746,7 +746,7 @@ fn main() {
 }
 
 // High-Order: Application orchestration
-fn run_application(cli: &Cli, config: &OxidexConfig, logger: &mut Stderr) -> Result<()> {
+fn run_application(cli: &Cli, config: &OxidexConfig, logger: &mut Stderr) ->  Result<(), E> {
     match &cli.command {
         Commands::Getv { key, context } => {
             execute_getv(key, context, config, logger)  // High → High
@@ -761,7 +761,7 @@ fn run_application(cli: &Cli, config: &OxidexConfig, logger: &mut Stderr) -> Res
 ```rust
 /// BashFX: dev_* functions must contain user-level guards
 #[cfg(debug_assertions)]
-pub fn dev_reset_database(config: &OxidexConfig) -> Result<()> {
+pub fn dev_reset_database(config: &OxidexConfig) ->  Result<(), E> {
     // ✅ REQUIRED: User-level guard in dev function
     if !config.dev {
         return Err(OdxError::DevModeRequired("Use -D flag to enable dev functions".into()));

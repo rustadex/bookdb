@@ -150,19 +150,19 @@ pub enum LsTarget {
 }
 
 /// Extract context string from command if present
-fn get_context_from_command(command: &Option<cli::Command>) -> Option<String> {
+pub fn get_context_from_command(command: &Option<cli::Command>) -> Option<String> {
     match command {
-        Some(cli::Command::Getv { context_chain, .. }) => context_chain.clone(),
-        Some(cli::Command::Setv { context_chain, .. }) => context_chain.clone(),
-        Some(cli::Command::Delv { context_chain, .. }) => context_chain.clone(),
-        Some(cli::Command::Inc { context_chain, .. }) => context_chain.clone(),
-        Some(cli::Command::Dec { context_chain, .. }) => context_chain.clone(),
-        Some(cli::Command::Getd { context_chain, .. }) => context_chain.clone(),
-        Some(cli::Command::Setd { context_chain, .. }) => context_chain.clone(),
-        Some(cli::Command::Ls { context_chain, .. }) => context_chain.clone(),
-        Some(cli::Command::Import { context_chain, .. }) => context_chain.clone(),
-        Some(cli::Command::Export { context_chain, .. }) => context_chain.clone(),
-        Some(cli::Command::Migrate { context_chain, .. }) => context_chain.clone(),
+        Some(Command::Getv { context_chain, .. }) => context_chain.clone(),
+        Some(Command::Setv { context_chain, .. }) => context_chain.clone(),
+        Some(Command::Delv { context_chain, .. }) => context_chain.clone(),
+        Some(Command::Inc { context_chain, .. }) => context_chain.clone(),
+        Some(Command::Dec { context_chain, .. }) => context_chain.clone(),
+        Some(Command::Getd { context_chain, .. }) => context_chain.clone(),
+        Some(Command::Setd { context_chain, .. }) => context_chain.clone(),
+        Some(Command::Ls { context_chain, .. }) => context_chain.clone(),
+        Some(Command::Import { context_chain, .. }) => context_chain.clone(),
+        Some(Command::Export { context_chain, .. }) => context_chain.clone(),
+        Some(Command::Migrate { context_chain, .. }) => context_chain.clone(),
         _ => None,
     }
 }

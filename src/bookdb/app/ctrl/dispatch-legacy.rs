@@ -18,9 +18,9 @@ use bookdb::{
     rdx::stderr::{Stderr, StderrConfig},
 };
 
-fn main() -> Result<()> {
+fn main() ->  Result<(), E> {
     // Initialize stderr logging
-    let mut logger = Stderr::new(&StderrConfig::from_env());
+    let mut logger = Stderr::new();
     logger.trace_fn("main", "BookDB starting");
     
     // Parse command line arguments
@@ -56,13 +56,13 @@ fn main() -> Result<()> {
 }
 
 /// Handle the install command
-fn handle_install_command(config: Config) -> Result<()> {
+fn handle_install_command(config: Config) ->  Result<(), E> {
     let mut installer = InstallationManager::new(config);
     installer.install()
 }
 
 /// Execute a regular BookDB command
-fn execute_command(cli: Cli, config: Config, mut logger: Stderr) -> Result<()> {
+fn execute_command(cli: Cli, config: Config, mut logger: Stderr) ->  Result<(), E> {
     logger.trace_fn("main", "executing command");
     
     // Initialize context manager
@@ -176,7 +176,7 @@ fn get_context_from_command(command: &Option<cli::Command>) -> Option<String> {
 fn handle_cursor_command(
     context_manager: &mut ContextManager, 
     cursor_state: &bookdb::context::CursorState
-) -> Result<()> {
+) ->  Result<(), E> {
     context_manager.show_cursor_status(cursor_state)
 }
 
@@ -185,7 +185,7 @@ fn handle_use_command(
     context_str: String,
     context_manager: &mut ContextManager,
     cursor_state: &mut bookdb::context::CursorState,
-) -> Result<()> {
+) ->  Result<(), E> {
     let chain = parse_context_chain(&context_str, &cursor_state.base_cursor)?;
     context_manager.update_cursor(&chain, cursor_state)?;
     Ok(())
@@ -197,7 +197,7 @@ fn handle_getv_command(
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     logger.trace_fn("getv", &format!("key: {}, context: {}", key, context));
     
     match database.get_variable(&key, context)? {
@@ -220,7 +220,7 @@ fn handle_setv_command(
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     logger.trace_fn("setv", &format!("input: {}, context: {}", key_value, context));
     
     let (key, value) = key_value.split_once('=')
@@ -238,7 +238,7 @@ fn handle_delv_command(
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     logger.trace_fn("delv", &format!("key: {}, context: {}", key, context));
     
     // Check if key exists first
@@ -266,7 +266,7 @@ fn handle_ls_command(
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     use bookdb::context_manager::LsTableFormatter;
     
     logger.trace_fn("ls", &format!("target: {:?}, context: {}", target, context));
@@ -307,7 +307,7 @@ fn handle_export_command(
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     use bookdb::context_manager::OperationProgress;
     
     logger.trace_fn("export", &format!("file: {:?}, context: {}", file_path, context));
@@ -365,7 +365,7 @@ fn handle_import_command(
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     use bookdb::context_manager::{OperationProgress, DestructiveOpConfirm};
     
     logger.trace_fn("import", &format!("file: {:?}, context: {}", file_path, context));
@@ -425,7 +425,7 @@ fn handle_getd_command(
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     logger.trace_fn("getd", &format!("dik: {}, context: {}", dik, context));
     
     match database.get_document(&dik, context)? {
@@ -448,7 +448,7 @@ fn handle_setd_command(
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     logger.trace_fn("setd", &format!("input: {}, context: {}", dik_value, context));
     
     let (dik, content) = dik_value.split_once('=')
@@ -466,7 +466,7 @@ fn handle_migrate_command(
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
-) -> Result<()> {
+) ->  Result<(), E> {
     logger.trace_fn("migrate", &format!("dry_run: {}, context: {}", dry_run, context));
     
     if dry_run {

@@ -60,7 +60,7 @@ impl Database {
     }
     
     /// Set variable value (upsert operation)
-    pub fn set_variable(&self, key: &str, value: &str, context: &ResolvedContext) -> Result<()> {
+    pub fn set_variable(&self, key: &str, value: &str, context: &ResolvedContext) ->  Result<(), E> {
         self.logger.trace_fn("database", &format!("setting variable {} = {} in context: {}", key, value, context));
         
         let tx = self.connection.transaction()?;
@@ -76,7 +76,7 @@ impl Database {
     }
     
     /// Delete variable by key and context
-    pub fn delete_variable(&self, key: &str, context: &ResolvedContext) -> Result<bool> {
+    pub fn delete_variable(&self, key: &str, context: &ResolvedContext) -> Result<bool, E> {
         self.logger.trace_fn("database", &format!("deleting variable {} in context: {}", key, context));
         
         let changes = self.connection.execute(
@@ -175,13 +175,13 @@ impl Database {
     }
     
     /// Create a new keystore (stub - implicit through first variable)
-    pub fn create_keystore(&self, _project: &str, _workspace: &str, _name: &str) -> Result<()> {
+    pub fn create_keystore(&self, _project: &str, _workspace: &str, _name: &str) ->  Result<(), E> {
         // TODO: Implement explicit keystore creation if needed
         todo!("Explicit keystore creation not yet implemented")
     }
     
     /// Delete a keystore (stub - not implemented)
-    pub fn delete_keystore(&self, _project: &str, _workspace: &str, _name: &str) -> Result<()> {
+    pub fn delete_keystore(&self, _project: &str, _workspace: &str, _name: &str) ->  Result<(), E> {
         // TODO: Implement keystore deletion with cascade
         todo!("Keystore deletion not yet implemented")
     }
