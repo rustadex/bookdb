@@ -1,6 +1,6 @@
 
 /// Handle cursor status display
-pub fnhandle_cursor_command(
+pub fn handle_cursor_command(
     context_manager: &mut ContextManager,
     cursor_state: &bookdb::context::CursorState
 ) ->  Result<(), E> {
@@ -8,7 +8,7 @@ pub fnhandle_cursor_command(
 }
 
 /// Handle context switching with 'use' command
-pub fnhandle_use_command(
+pub fn handle_use_command(
     context_str: String,
     context_manager: &mut ContextManager,
     cursor_state: &mut bookdb::context::CursorState,

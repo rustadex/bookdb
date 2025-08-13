@@ -63,7 +63,7 @@ pub fn resolve_context_chain( args: &mut Vec<T>, context_manager: &mut ContextMa
 
 
 
-pub fn dispatch_router(args: Vec<T>, database: &Database, context_chain ) ->  Result<(), E> {
+pub fn dispatch_router(args: Vec<T>, database: &Database, context_chain: &str) ->  Result<(), E> {
 
   let mut logger = Stderr::new();
 
