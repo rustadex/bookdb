@@ -19,7 +19,7 @@ pub fn handle_use_command(
 }
 
 /// Handle variable retrieval
-pub fnhandle_getv_command(
+pub fn handle_getv_command(
     key: String,
     database: &Database,
     context: &bookdb::context::ResolvedContext,
@@ -42,7 +42,7 @@ pub fnhandle_getv_command(
 }
 
 /// Handle variable setting
-pub fnhandle_setv_command(
+pub fn handle_setv_command(
     key_value: String,
     database: &Database,
     context: &bookdb::context::ResolvedContext,
@@ -60,7 +60,7 @@ pub fnhandle_setv_command(
 }
 
 /// Handle variable deletion
-pub fnhandle_delv_command(
+pub fn handle_delv_command(
     key: String,
     database: &Database,
     context: &bookdb::context::ResolvedContext,
@@ -89,7 +89,7 @@ pub fnhandle_delv_command(
 }
 
 /// Handle increment command
-pub fnhandle_inc_command(
+pub fn handle_inc_command(
     key: String,
     amount: i64,
     database: &Database,
@@ -101,7 +101,7 @@ pub fnhandle_inc_command(
 }
 
 /// Handle decrement command
-pub fnhandle_dec_command(
+pub fn handle_dec_command(
     key: String,
     amount: i64,
     database: &Database,
@@ -113,7 +113,7 @@ pub fnhandle_dec_command(
 }
 
 /// Handle listing command
-pub fnhandle_ls_command(
+pub fn handle_ls_command(
     target: cli::LsTarget,
     database: &Database,
     context: &bookdb::context::ResolvedContext,
@@ -152,7 +152,7 @@ pub fnhandle_ls_command(
 }
 
 /// Handle export command
-pub fnhandle_export_command(
+pub fn handle_export_command(
     file_path: PathBuf,
     format: Option<String>,
     filters: (Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>),
@@ -225,7 +225,7 @@ pub fnhandle_export_command(
 }
 
 /// Handle import command with progress tracking and confirmation
-pub fnhandle_import_command(
+pub fn handle_import_command(
     file_path: PathBuf,
     mode: Option<String>,
     mappings: (Option<String>, Option<String>, Option<String>),
@@ -290,7 +290,7 @@ pub fnhandle_import_command(
 }
 
 /// Handle document retrieval
-pub fnhandle_getd_command(
+pub fn handle_getd_command(
     dik: String,
     database: &Database,
     context: &bookdb::context::ResolvedContext,
@@ -313,7 +313,7 @@ pub fnhandle_getd_command(
 }
 
 /// Handle document setting
-pub fnhandle_setd_command(
+pub fn handle_setd_command(
     dik_value: String,
     database: &Database,
     context: &bookdb::context::ResolvedContext,
@@ -331,7 +331,7 @@ pub fnhandle_setd_command(
 }
 
 /// Handle migration command
-pub fnhandle_migrate_command(
+pub fn handle_migrate_command(
     dry_run: bool,
     database: &Database,
     context: &bookdb::context::ResolvedContext,
@@ -355,7 +355,7 @@ pub fnhandle_migrate_command(
 }
 
 /// Handle installation command
-pub fnhandle_install_command(
+pub fn handle_install_command(
     database: &Database,
     context: &bookdb::context::ResolvedContext,
     logger: &mut Stderr,
