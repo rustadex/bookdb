@@ -4,7 +4,8 @@ use colored::Colorize;
 const CLI_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn logo(){
-    const LOGO_TEXT: &str = include_str!("../../docs/logo.log");
+    //const LOGO_TEXT: &str = include_str!("../../docs/logo.log");
+    const LOGO: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/docs/logo.log"));
     println!("{}", LOGO_TEXT.cyan());
 }
 

@@ -1,202 +1,219 @@
+// src/cli.rs - Root CLI module (ODX-based from Session 18)
+
 use clap::{Parser, Subcommand, ValueEnum};
 
-#[derive(Debug, Parser)]
+#[derive(Parser)]
 #[command(name = "bookdb")]
-#[command(about = "BookDB - Context-aware key-value and document store")]
+#[command(about = "A CLI tool for managing key-value stores and documents")]
+#[command(version)]
 pub struct Cli {
-    /// Enable global context chain (parsed before command)
-    #[arg(long, global = true)]
-    pub context: Option<String>,
-    
-    /// Persist context chain as cursor for subsequent commands
-    #[arg(long, global = true)]
-    pub persist: bool,
-    
+    /// Enable debug mode (shows info, warn, okay messages)
+    #[arg(short = 'd', long)]
+    pub debug: bool,
+
+    /// Enable trace mode (shows trace, think messages + debug)
+    #[arg(short = 't', long)]
+    pub trace: bool,
+
+    /// Quiet mode (only error/fatal messages)
+    #[arg(short = 'q', long)]
+    pub quiet: bool,
+
+    /// Force mode (bypass safety guards)
+    #[arg(short = 'f', long)]
+    pub force: bool,
+
+    /// Auto-confirm prompts
+    #[arg(short = 'y', long)]
+    pub yes: bool,
+
+    /// Developer mode (enables debug + trace + dev features)
+    #[arg(short = 'D', long)]
+    pub dev: bool,
+
+    /// Dry run mode (show what would be done)
+    #[arg(long)]
+    pub dry_run: bool,
+
+    /// JSON output for machine consumption
+    #[arg(long)]
+    pub json: bool,
+
+    /// Disable colored output
+    #[arg(long)]
+    pub no_color: bool,
+
+    /// Override database path
+    #[arg(long)]
+    pub db_path: Option<String>,
+
+    /// Override base context
+    #[arg(long)]
+    pub base: Option<String>,
+
     #[command(subcommand)]
-    pub command: Option<Command>,
+    pub command: Option<Commands>,
 }
 
-#[derive(Debug, Subcommand)]
-pub enum Command {
-    /// Get variable: KEY [CONTEXT]
+#[derive(Subcommand)]
+pub enum Commands {
+    /// Get a variable value
     Getv {
-        /// variable key to retrieve
+        /// Variable key
         key: String,
-        /// context chain as the LAST arg
-        context_chain: Option<String>,
+        /// Context chain override
+        #[arg(short, long)]
+        context: Option<String>,
     },
-    /// Set variable: KEY=VALUE [CONTEXT]
+    /// Set a variable value
     Setv {
-        /// e.g. "API_KEY=12345"
+        /// Key=value pair
         key_value: String,
-        /// context chain as the LAST arg
-        context_chain: Option<String>,
+        /// Context chain override
+        #[arg(short, long)]
+        context: Option<String>,
     },
-    /// Delete variable: KEY [CONTEXT]
+    /// Delete a variable
     Delv {
-        /// variable key to delete
+        /// Variable key
         key: String,
-        /// context chain as the LAST arg
-        context_chain: Option<String>,
+        /// Context chain override
+        #[arg(short, long)]
+        context: Option<String>,
     },
-    /// Increment numeric variable: KEY [CONTEXT]
+    /// Increment a numeric variable
     Inc {
-        /// variable key to increment
+        /// Variable key
         key: String,
-        /// amount to increment by (default: 1)
-        #[arg(short, long, default_value = "1")]
-        amount: i64,
-        /// context chain as the LAST arg
-        context_chain: Option<String>,
+        /// Amount to increment (default: 1)
+        amount: Option<i64>,
+        /// Context chain override
+        #[arg(short, long)]
+        context: Option<String>,
     },
-    /// Decrement numeric variable: KEY [CONTEXT]
+    /// Decrement a numeric variable
     Dec {
-        /// variable key to decrement
+        /// Variable key
         key: String,
-        /// amount to decrement by (default: 1)
-        #[arg(short, long, default_value = "1")]
-        amount: i64,
-        /// context chain as the LAST arg
-        context_chain: Option<String>,
+        /// Amount to decrement (default: 1)
+        amount: Option<i64>,
+        /// Context chain override
+        #[arg(short, long)]
+        context: Option<String>,
     },
-    /// Get document segment: SEGMENT_PATH [CONTEXT]
-    Getd {
-        /// e.g. "main._root" (final tail segment if not embedded)
-        dik: String,
-        /// context chain as the LAST arg
-        context_chain: Option<String>,
-    },
-    /// Set document segment: SEGMENT_PATH=VALUE [CONTEXT]
-    Setd {
-        /// e.g. "main._root=hello"
-        dik_value: String,
-        /// context chain as the LAST arg
-        context_chain: Option<String>,
-    },
-    /// List items in current namespace or explicit context: [keys|docs|projects|workspaces|keystores] [CONTEXT]
+    /// List data (projects, keys, etc.)
     Ls {
-        #[arg(value_enum)]
+        /// What to list
         target: LsTarget,
-        /// context chain as the LAST arg
-        context_chain: Option<String>,
+        /// Context chain override
+        #[arg(short, long)]
+        context: Option<String>,
     },
-    /// Import from file into context (kv or jsonl): FILE [CONTEXT]
-    Import {
-        /// input file path
-        file_path: std::path::PathBuf,
-        /// format override: kv|jsonl (default by content)
-        #[arg(long)]
-        mode: Option<String>,
-        /// rename (optional) base/project/workspace on import
-        #[arg(long)]
-        map_base: Option<String>,
-        #[arg(long)]
-        map_proj: Option<String>,
-        #[arg(long)]
-        map_workspace: Option<String>,
-        /// explicit format if needed (alias of --mode)
-        #[arg(long)]
-        format: Option<String>,
-        /// context chain as the LAST arg
-        context_chain: Option<String>,
+    /// Get a document
+    Getd {
+        /// Document key
+        dik: String,
+        /// Context chain override
+        #[arg(short, long)]
+        context: Option<String>,
     },
-    /// Export from context to file (kv or jsonl): FILE [CONTEXT]
+    /// Set a document
+    Setd {
+        /// Document key=value pair
+        dik_value: String,
+        /// Context chain override
+        #[arg(short, long)]
+        context: Option<String>,
+    },
+    /// Export data to file
     Export {
-        /// output file path
-        file_path: std::path::PathBuf,
-        /// format: kv|jsonl
-        #[arg(long)]
+        /// Output file path
+        file_path: String,
+        /// Export format
+        #[arg(short, long)]
         format: Option<String>,
-        /// optional filters (reserved for future)
+        /// Project filter
         #[arg(long)]
         proj: Option<String>,
+        /// Workspace filter
         #[arg(long)]
         workspace: Option<String>,
+        /// Keystore filter
         #[arg(long)]
         keystore: Option<String>,
+        /// Document filter
         #[arg(long)]
         doc: Option<String>,
+        /// Key filter
         #[arg(long)]
         key: Option<String>,
+        /// Segment filter
         #[arg(long)]
         seg: Option<String>,
-        /// context chain as the LAST arg
-        context_chain: Option<String>,
     },
-    /// Migrate legacy doc_chunks -> v2 docs: [CONTEXT]
+    /// Import data from file
+    Import {
+        /// Input file path
+        file_path: String,
+        /// Import mode
+        #[arg(short, long)]
+        mode: Option<String>,
+        /// Map base
+        #[arg(long)]
+        map_base: Option<String>,
+        /// Map project
+        #[arg(long)]
+        map_proj: Option<String>,
+        /// Map workspace
+        #[arg(long)]
+        map_workspace: Option<String>,
+    },
+    /// Migrate data
     Migrate {
-        /// dry run (no writes)
+        /// Show what would be migrated without doing it
         #[arg(long)]
         dry_run: bool,
-        /// context chain as the LAST arg
-        context_chain: Option<String>,
     },
-    /// Set the cursor (base + chain) explicitly
+    /// Change active context
     Use {
-        /// full chain to persist in cursors; accepts explicit base form: BASE@ROOT.GLOBAL.VAR.MAIN
+        /// New context string
         context_str: String,
     },
-    /// One-time install of the 'home' base and invincible chains
+    /// Install BookDB
     Install {},
+    /// Show current cursor/context
+    Cursor {},
+    /// Show current status
+    Status {},
+    /// Show current base
+    Base {},
+    /// Find a key across projects
+    Find {
+        /// Search pattern
+        pattern: String,
+    },
 }
 
-#[derive(Debug, Clone, Copy, ValueEnum)]
-pub enum LsTarget { 
-    Keys,           // List variables in current keystore
-    Docs,           // List documents in current workspace
-    Projects,       // List all projects in current base
-    Workspaces,     // List workspaces in current project
-    Keystores       // List keystores in current workspace
+#[derive(ValueEnum, Clone)]
+pub enum LsTarget {
+    /// List all available data
+    All,
+    /// List projects
+    Projects,
+    /// List workspaces
+    Workspaces,
+    /// List keystores
+    Keystores,
+    /// List variable keys
+    Keys,
+    /// List documents
+    Docs,
+    /// List bases
+    Bases,
 }
 
-/// Extract context string from command if present
-pub fn get_context_from_command(command: &Option<cli::Command>) -> Option<String> {
-    match command {
-        Some(Command::Getv { context_chain, .. }) => context_chain.clone(),
-        Some(Command::Setv { context_chain, .. }) => context_chain.clone(),
-        Some(Command::Delv { context_chain, .. }) => context_chain.clone(),
-        Some(Command::Inc { context_chain, .. }) => context_chain.clone(),
-        Some(Command::Dec { context_chain, .. }) => context_chain.clone(),
-        Some(Command::Getd { context_chain, .. }) => context_chain.clone(),
-        Some(Command::Setd { context_chain, .. }) => context_chain.clone(),
-        Some(Command::Ls { context_chain, .. }) => context_chain.clone(),
-        Some(Command::Import { context_chain, .. }) => context_chain.clone(),
-        Some(Command::Export { context_chain, .. }) => context_chain.clone(),
-        Some(Command::Migrate { context_chain, .. }) => context_chain.clone(),
-        _ => None,
+impl Default for LsTarget {
+    fn default() -> Self {
+        Self::All
     }
 }
-
-
-  //missing functions
-
-        // Commands::Reset { context_chain, no_confirm } => {
-        //     if config.dry_run {
-        //         logger.info(&format!("DRY RUN: Would reset context '{}'", context_chain));
-        //         return Ok(());
-        //     }
-            
-        //     execute_reset(context_chain, *no_confirm, db_path, config, logger)
-        // }
-        
-        // Commands::Validate { context_chain } => {
-        //     execute_validate(context_chain, config, logger)
-        // }
-        
-        // Commands::Stats { context_chain } => {
-        //     let context = if let Some(cc) = context_chain {
-        //         resolve_context_chain(&Some(cc.clone()), base_context, config, logger)?
-        //     } else {
-        //         base_context.to_string()
-        //     };
-        //     execute_stats(&context, db_path, config, logger)
-        // }
-
-
-// fn parse_assignment(assignment: &str) -> Result<(String, String), Box<dyn std::error::Error>> {
-//     let parts: Vec<&str> = assignment.splitn(2, '=').collect();
-//     if parts.len() != 2 {
-//         return Err(format!("Invalid assignment format: '{}'. Expected 'key=value'", assignment).into());
-//     }
-//     Ok((parts[0].to_string(), parts[1].to_string()))
-// }

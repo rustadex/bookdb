@@ -128,11 +128,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // ----- Generate constants -----
     if sql_dir.exists() {
         build_const_from_dir(&sql_dir, &out_path, &sql_version, SQL_BASE_PATH)?;
+        println!("cargo:rerun-if-changed=src/bookdb/service/db/data/sqlv2");
+        println!("cargo:rerun-if-changed=src/bookdb/service/db/data/sqlv1");
     } else {
         // Generate fallback constants if directory doesn't exist
         generate_fallback_constants(&out_path, &sql_version)?;
         println!("cargo:warning=SQL directory not found, using fallback constants");
     }
+    
+
+
 
     // ----- Set up rebuild triggers -----
     setup_rebuild_triggers(&sql_dir, &sql_version)?;
@@ -188,3 +193,4 @@ fn generate_fallback_constants(out_path: &PathBuf, sql_version: &str) -> Result<
     fs::write(out_path, fallback_content)?;
     Ok(())
 }
+

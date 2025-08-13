@@ -43,9 +43,12 @@ pub mod info {
 // TODO: Re-enable when app module is ready
 
 pub use app::sup::error; 
+pub use app::sup::error::{BookdbError, Result};
+
 pub use app::ctrl::{ dispatch as run };
 pub use app::install::{ 
   InstallGuard, 
   InstallationManager, 
   require_installation_or_install 
 };
+pub use app::sup::error::{BookdbError, Result};
