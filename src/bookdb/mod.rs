@@ -17,13 +17,13 @@ pub use utils::validator::valV3 as context_validator;
 #[cfg(feature = "context-chain-v1")]
 pub mod context {
     pub use crate::service::ctx::types::typesV1::*;
-};
+}
 
 #[cfg(feature = "context-chain-v3")]
 pub mod context {
     pub use crate::service::ctx::types::typesV3::*;
     pub use crate::service::ctx::types::segment::*; // NOTE: singular 'segment.rs'
-};
+}
 
 // Always available
 pub use crate::service::ctx::context_manager::ContextManager;
@@ -32,7 +32,7 @@ pub use crate::service::ctx::context_manager::ContextManager;
 
 pub mod info {
     pub use crate::utils::info::*; // re-export helpers
-};
+}
 
 // Error/result
 pub use crate::app::sup::error::{BookdbError, Result};

@@ -181,7 +181,7 @@ fn list_docs(context: &ResolvedContext, _database: &Database, logger: &mut Stder
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::bookdb::service::ctx as context::{Anchor, ChainMode};
+    use crate::bookdb::service::ctx::{Anchor, ChainMode};
     use tempfile::TempDir;
     
     fn create_test_context() -> ResolvedContext {

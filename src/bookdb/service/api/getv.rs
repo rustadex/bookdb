@@ -42,7 +42,7 @@ pub fn execute(key: &str, context: &ResolvedContext, database: &Database) ->  Re
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::bookdb::service::ctx as context::{Anchor, ChainMode};
+    use crate::bookdb::service::ctx::{Anchor, ChainMode};
     use tempfile::TempDir;
     use std::path::PathBuf;
     

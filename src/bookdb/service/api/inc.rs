@@ -98,7 +98,8 @@ mod tests {
             panic!("Expected Argument error for empty key");
         }
     }
-}[test]
+
+    #[test]
     fn test_increment_new_key() {
         let (db, _temp) = create_test_db();
         let context = create_test_context();
@@ -148,5 +149,4 @@ mod tests {
             panic!("Expected NonNumericValue error");
         }
     }
-    
-    #
+}

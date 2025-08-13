@@ -7,7 +7,7 @@ use stderr::{Stderr, StderrConfig};
 use std::path::Path;
 
 use crate::error::{Result, BookdbError};
-use crate::bookdb::service::ctx as context::{ContextChain, DefaultResolver, Anchor, ChainMode};
+use crate::bookdb::service::ctx::{ContextChain, DefaultResolver, Anchor, ChainMode};
 use crate::bookdb::service::db::Database;
 use crate::bookdb::app::sup::config::Config;
 

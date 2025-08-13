@@ -73,7 +73,7 @@ fn get_sql_version(cargo_toml: &str) -> Result<String, Box<dyn std::error::Error
 }
 
 /// Set up rebuild triggers for proper incremental builds
-fn setup_rebuild_triggers(sql_dir: &PathBuf, sql_version: &str) -> Result<(), Box<dyn std::error::Error>> {
+fn setup_rebuild_triggers(sql_dir: &PathBuf, _sql_version: &str) -> Result<(), Box<dyn std::error::Error>> {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=Cargo.toml");
     

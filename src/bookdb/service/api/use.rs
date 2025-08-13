@@ -7,7 +7,7 @@
 // 4. Rich feedback on context changes
 
 use crate::error::{Result, BookdbError};
-use crate::bookdb::service::ctx as context::{parse_context_chain, ResolvedContext};
+use crate::bookdb::service::ctx::{parse_context_chain, ResolvedContext};
 use crate::bookdb::service::db::Database;
 use stderr::{Stderr, StderrConfig};
 
@@ -47,7 +47,7 @@ pub fn execute(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::bookdb::service::ctx as context::{Anchor, ChainMode};
+    use crate::bookdb::service::ctx::{Anchor, ChainMode};
     use tempfile::TempDir;
     
     fn create_test_context() -> ResolvedContext {

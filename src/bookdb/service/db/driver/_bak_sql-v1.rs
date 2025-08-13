@@ -1,7 +1,7 @@
 // src/db.rs - Complete database implementation with atomic operations added
 
 use crate::error::{Result, BookdbError};
-use crate::bookdb::service::ctx as context::{ResolvedContext, Anchor};
+use crate::bookdb::service::ctx::{ResolvedContext, Anchor};
 use crate::rdx::stderr::{Stderr, StderrConfig};
 use rusqlite::{params, Connection, Transaction, Row};
 use std::path::{Path, PathBuf};

@@ -125,7 +125,7 @@ pub fn export_as_key_value(variables: &HashMap<String, String>) -> Result<String
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::bookdb::service::ctx as context::{Anchor, ChainMode};
+    use crate::bookdb::service::ctx::{Anchor, ChainMode};
     use tempfile::{TempDir, NamedTempFile};
     use std::collections::HashMap;
     
