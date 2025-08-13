@@ -28,8 +28,8 @@ pub fn load_global_context( args: &mut Vec<T>, ) -> (){
 
 }
 
-pub fn open_database( context_manager: &mut ContextManager, 
-                      cursor_state: &mut CursorState ) -> &Database 
+pub fn open_database<'a>( context_manager: &'a mut ContextManager, 
+                          cursor_state: &'a mut CursorState ) -> &'a Database 
 {
   // Open database
   let database_path = context_manager.get_database_path(&cursor_state.base_cursor);
@@ -45,8 +45,8 @@ pub fn open_database( context_manager: &mut ContextManager,
   database
 }
 
-pub fn resolve_context_chain( args: &mut Vec<T>, context_manager: &mut ContextManager, 
-                              cursor_state: &mut CursorState ) -> &Database 
+pub fn resolve_context_chain<'a>( args: &'a mut Vec<T>, context_manager: &'a mut ContextManager, 
+                                  cursor_state: &'a mut CursorState ) -> &'a Database 
 {
   // Get context from command or use cursor
   let context_chain = get_context_from_command(&args.command)

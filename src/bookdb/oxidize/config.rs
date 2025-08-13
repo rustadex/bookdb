@@ -84,12 +84,12 @@ impl OxidexConfig {
     }
     
     /// Get effective database path with fallback
-    pub fn get_db_path(&self, default: &str) -> &str {
+    pub fn get_db_path<'a>(&self, default: &'a str) -> &'a str {
         self.db_path.as_deref().unwrap_or(default)
     }
     
     /// Get effective base context with fallback
-    pub fn get_base_context(&self, default: &str) -> &str {
+    pub fn get_base_context<'a>(&self, default: &'a str) -> &'a str {
         self.base_context.as_deref().unwrap_or(default)
     }
     
