@@ -200,30 +200,32 @@ pub fn validate_and_expand_context_chain(
     
     // Step 7: Build canonical form
     let canonical_form = if is_fqcc {
-        format!("{}@{}.{}.{}.{}", 
+        format!("{}{}{}.{}.{}.{}", 
+            base, 
             match prefix_mode {
-                ChainMode::Persistent => '@',
-                ChainMode::Ephemeral => '%', 
-                ChainMode::Action => '#',
+              ChainMode::Persistent => '@',
+              ChainMode::Ephemeral => '%', 
+              ChainMode::Action => '#',
             },
-            base, project, workspace, 
+            project, 
+            workspace, 
             match anchor {
-                Anchor::Var => "var",
-                Anchor::Doc => "doc",
+              Anchor::Var => "var",
+              Anchor::Doc => "doc",
             },
             tail
         )
     } else {
         format!("{}{}.{}.{}.{}", 
             match prefix_mode {
-                ChainMode::Persistent => '@',
-                ChainMode::Ephemeral => '%',
-                ChainMode::Action => '#',
+              ChainMode::Persistent => '@',
+              ChainMode::Ephemeral => '%',
+              ChainMode::Action => '#',
             },
             project, workspace,
             match anchor {
-                Anchor::Var => "var", 
-                Anchor::Doc => "doc",
+              Anchor::Var => "var", 
+              Anchor::Doc => "doc",
             },
             tail
         )

@@ -16,7 +16,7 @@ impl LsTableFormatter {
     }
     
     /// Format and display a table of items
-    pub fn display_table(&mut self, headers: &[&str], rows: &[Vec<String>], title: Option<&str>) ->  Result<(), E> {
+    pub fn display_table<E>(&mut self, headers: &[&str], rows: &[Vec<String>], title: Option<&str>) ->  Result<(), E> {
         if let Some(title) = title {
             self.logger.banner(title, '=')?;
         }
@@ -48,7 +48,7 @@ impl LsTableFormatter {
     }
     
     /// Display variables in a nice table format
-    pub fn display_variables(&mut self, variables: &[(String, String)], context: &str) ->  Result<(), E> {
+    pub fn display_variables<E>(&mut self, variables: &[(String, String)], context: &str) ->  Result<(), E> {
         let title = format!("Variables in {}", context);
         
         let rows: Vec<Vec<String>> = variables.iter()
@@ -59,7 +59,7 @@ impl LsTableFormatter {
     }
     
     /// Display projects, workspaces, etc. in table format
-    pub fn display_namespaces(&mut self, items: &[String], namespace_type: &str, context: &str) ->  Result<(), E> {
+    pub fn display_namespaces<E>(&mut self, items: &[String], namespace_type: &str, context: &str) ->  Result<(), E> {
         let title = format!("{} in {}", namespace_type, context);
         
         let rows: Vec<Vec<String>> = items.iter()
@@ -97,13 +97,13 @@ impl OperationProgress {
         self.logger.trace_fn("progress", &format!("{}: starting {} items", self.operation_name, total));
     }
     
-    pub fn increment(&mut self, item_name: &str) ->  Result<(), E> {
+    pub fn increment <E>(&mut self, item_name: &str) ->  Result<(), E> {
         self.current_item += 1;
         
         if let Some(total) = self.total_items {
-            let percent = (self.current_item as f64 / total as f64 * 100.0) as usize;
-            self.logger.info(&format!("[{}/{}] ({:3}%) Processing: {}", 
-                self.current_item, total, percent, item_name));
+          let percent = (self.current_item as f64 / total as f64 * 100.0) as usize;
+          self.logger.info(&format!("[{}/{}] ({:3}%) Processing: {}", 
+          self.current_item, total, percent, item_name));
         } else {
             self.logger.info(&format!("[{}] Processing: {}", self.current_item, item_name));
         }
@@ -125,7 +125,7 @@ pub struct DestructiveOpConfirm {
     logger: Stderr,
 }
 
-impl DestructiveOpConfirm {
+impl <E>DestructiveOpConfirm {
     pub fn new() -> Self {
         Self {
             logger: Stderr::new(),
